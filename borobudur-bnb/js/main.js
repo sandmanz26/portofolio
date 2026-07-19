@@ -46,11 +46,17 @@
     }, { passive: true });
     onScroll();
 
-    // active link by current page
+    // active link by current page (detail pages highlight their section:
+    // room-*.html -> room.html, activity-*.html -> activity.html)
     var path = (window.location.pathname.split('/').pop() || 'index.html');
+    var pageBase = path.replace(/\.html$/, '');
     document.querySelectorAll('.nav__links a, .drawer__links a').forEach(function (a) {
       var href = a.getAttribute('href');
-      if (href === path || (path === '' && href === 'index.html')) a.classList.add('is-active');
+      if (!href) return;
+      var hrefBase = href.replace(/\.html$/, '');
+      if (href === path || (path === '' && href === 'index.html') || pageBase.indexOf(hrefBase + '-') === 0) {
+        a.classList.add('is-active');
+      }
     });
   }
 
