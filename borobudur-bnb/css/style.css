@@ -430,6 +430,7 @@ p { color: var(--ink-70); }
 
 /* ---------- EXPERIENCE CARDS (home strip) ---------- */
 .exp-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(20px, 2.6vw, 40px); }
+.exp-grid--quad { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .exp-card { display: block; }
 .exp-card__media { overflow: hidden; position: relative; }
 .exp-card__media img { width: 100%; aspect-ratio: 4/5; object-fit: cover; transition: transform var(--dur-slow) var(--ease-out); }
