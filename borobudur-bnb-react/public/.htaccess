@@ -1,0 +1,27 @@
+# Borobudur BnB — React (Vite) SPA routing for cPanel / Apache
+# Serves index.html for any path that isn't a real file, so React Router's
+# BrowserRouter can handle client-side routes like /room/joglo directly.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # If the subfolder deployment isn't at the domain root, uncomment and set it:
+  # RewriteBase /
+
+  # Let existing files and directories (assets, images, etc.) pass through as-is.
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^ - [L]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Everything else falls back to index.html for React Router to handle.
+  RewriteRule ^ index.html [L]
+</IfModule>
+
+# Basic caching for static assets
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType image/svg+xml "access plus 1 year"
+</IfModule>

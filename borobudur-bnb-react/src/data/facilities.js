@@ -1,0 +1,16 @@
+export const facilities = [
+  { no: '01', title: 'Sunrise temple tour', text: "Daily 04:15 guided walk to Borobudur's east gate — included free with every booking." },
+  { no: '02', title: 'Kolam Kungkum soaking pool', text: 'A cedar soaking tub behind a bamboo screen in the garden — book it for your group, up to six adults.' },
+  { no: '03', title: 'Garden swimming pool', text: 'Freshwater pool open 7 am – 9 pm, framed by frangipani trees and rice-field views.' },
+  { no: '04', title: 'Home-cooked breakfast', text: 'Served 6:30 – 10 am on the veranda: nasi goreng, tropical fruit, Magelang-grown coffee.' },
+  { no: '05', title: 'Free fibre Wi-Fi', text: '100 Mbps reaching every room, the pool deck and the joglo pavilion.' },
+  { no: '06', title: 'Landscaped garden grounds', text: 'Sprawling lawns, shade trees and quiet corners for a book or a nap between activities.' },
+  { no: '07', title: 'Free private parking', text: 'Gated, on-site parking for cars, scooters and tour vans, watched overnight.' },
+  { no: '08', title: 'Bicycle & scooter rental', text: 'Rp 50K/day bicycles, Rp 90K/day scooters — helmets included, booked at the front desk.' },
+  { no: '09', title: 'Airport & station transfer', text: 'Pickup from Yogyakarta Airport (YIA, ~1 hr) or Tugu Station, arranged on request.' },
+  { no: '10', title: 'Laundry service', text: 'Same-day wash & fold, Rp 20K/kg — handy after a dusty day exploring the region.' },
+  { no: '11', title: 'Joglo common pavilion', text: 'An open-air teak pavilion for breakfast, board games, or an evening beer with other guests.' },
+  { no: '12', title: 'Garden pavilion & celebrations', text: 'Reunions, community retreats and small garden weddings hosted in our pavilion and lawn — ask for a walkthrough.' },
+  { no: '13', title: '24-hour local hosting', text: 'The family lives on-site — someone is always around for questions, big or small.' },
+  { no: '14', title: 'Travel desk', text: 'Train, bus and driver bookings onward to Yogyakarta, Solo, or the Dieng Plateau.' },
+];
