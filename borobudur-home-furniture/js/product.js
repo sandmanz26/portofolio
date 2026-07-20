@@ -13,8 +13,8 @@
   if (!product) {
     root.innerHTML =
       '<div class="catalog-empty">' +
-        "<p>Produk tidak ditemukan.</p>" +
-        '<p style="margin-top:1.5rem"><a class="link-arrow" href="catalog.html">Kembali ke katalog</a></p>' +
+        "<p>Product not found.</p>" +
+        '<p style="margin-top:1.5rem"><a class="link-arrow" href="catalog.html">Back to catalog</a></p>' +
       "</div>";
     return;
   }
@@ -22,7 +22,7 @@
   document.title = product.name + " — Borobudur Home Furniture";
 
   var waMessage = encodeURIComponent(
-    "Halo BHF, saya tertarik dengan " + product.name + " (" + bhfFormatPrice(product.price) + "). Boleh info ketersediaannya?"
+    "Hello BHF, I'm interested in the " + product.name + " (" + bhfFormatPrice(product.price) + "). Could you tell me about its availability?"
   );
 
   root.innerHTML =
@@ -40,17 +40,17 @@
         '<p class="product-detail__price">' + bhfFormatPrice(product.price) + "</p>" +
         '<p class="product-detail__desc">' + product.description + "</p>" +
         '<dl class="spec-list">' +
-          "<div><dt>Dimensi</dt><dd>" + product.dimensions + "</dd></div>" +
+          "<div><dt>Dimensions</dt><dd>" + product.dimensions + "</dd></div>" +
           "<div><dt>Material</dt><dd>" + product.material + "</dd></div>" +
-          "<div><dt>Finishing</dt><dd>" + product.finish + "</dd></div>" +
-          "<div><dt>Ketersediaan</dt><dd>" + product.leadTime + "</dd></div>" +
+          "<div><dt>Finish</dt><dd>" + product.finish + "</dd></div>" +
+          "<div><dt>Availability</dt><dd>" + product.leadTime + "</dd></div>" +
         "</dl>" +
         '<div class="product-detail__actions">' +
-          '<a class="btn btn--solid" href="https://wa.me/6281227160160?text=' + waMessage + '" target="_blank" rel="noopener">Tanya via WhatsApp</a>' +
+          '<a class="btn btn--solid" href="https://wa.me/6281227160160?text=' + waMessage + '" target="_blank" rel="noopener">Ask via WhatsApp</a>' +
           '<a class="btn" href="contact.html">Request Custom</a>' +
         "</div>" +
-        '<p class="product-detail__note">Setiap produk dibuat dari kayu pilihan yang dikeringkan di kiln. ' +
-          "Warna dan serat kayu dapat sedikit berbeda dari gambar — itulah karakter alami furniture kami.</p>" +
+        '<p class="product-detail__note">Every piece is built from selected, kiln-dried solid wood. ' +
+          "Colour and grain may differ slightly from the photos — that is the natural character of real timber.</p>" +
       "</div>" +
     "</div>";
 

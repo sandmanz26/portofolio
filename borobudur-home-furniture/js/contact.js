@@ -12,12 +12,12 @@
 
     var data = new FormData(form);
     var lines = [
-      "Halo BHF, saya " + data.get("name") + ".",
-      "Kebutuhan: " + data.get("subject"),
+      "Hello BHF, my name is " + data.get("name") + ".",
+      "Regarding: " + data.get("subject"),
       "",
       data.get("message"),
       "",
-      "Kontak: " + data.get("email") + (data.get("phone") ? " / " + data.get("phone") : "")
+      "Contact: " + data.get("email") + (data.get("phone") ? " / " + data.get("phone") : "")
     ];
 
     var url = "https://wa.me/6281227160160?text=" + encodeURIComponent(lines.join("\n"));
@@ -25,8 +25,8 @@
 
     if (status) {
       status.textContent =
-        "Terima kasih, " + data.get("name") + ". Pesan Anda sedang dibuka di WhatsApp — " +
-        "tim kami biasanya membalas dalam satu hari kerja.";
+        "Thank you, " + data.get("name") + ". Your message is opening in WhatsApp — " +
+        "our team usually replies within one working day.";
       status.classList.add("is-visible");
     }
 

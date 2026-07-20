@@ -3,198 +3,202 @@
    Single source of truth for catalog, featured, and detail pages
    ============================================================ */
 
+function bhfUnsplash(id, width) {
+  return "https://images.unsplash.com/photo-" + id + "?q=80&w=" + (width || 1200) + "&auto=format&fit=crop";
+}
+
 const BHF_PRODUCTS = [
   {
     id: "arjuna-lounge-chair",
     name: "Arjuna Lounge Chair",
     category: "Seating",
     price: 4850000,
-    image: "assets/img/arjuna-lounge-chair.svg",
+    image: bhfUnsplash("1598300042247-d088f8ab3a91"),
     tag: "Best Seller",
     featured: true,
-    short: "Kursi santai kayu jati dengan sandaran rebah dan siluet ringan.",
+    short: "An upholstered lounge chair on a solid teak frame with a light silhouette.",
     description:
-      "Arjuna adalah kursi santai dengan rangka jati solid dan sudut sandaran yang dirancang untuk waktu istirahat panjang. Sambungan purus tradisional dikerjakan oleh pengrajin Jogja, difinishing natural matte yang mempertahankan serat kayu.",
+      "Arjuna is a lounge chair built on a solid teak frame, its reclined back angled for long, unhurried evenings. Traditional mortise-and-tenon joints are cut by hand in our Yogyakarta workshop, then finished in a natural matte that keeps the grain visible.",
     dimensions: "65 × 78 × 82 cm",
-    material: "Jati solid (grade A)",
+    material: "Grade-A solid teak, premium upholstery",
     finish: "Natural matte / Walnut dark",
-    leadTime: "Ready stock di showroom"
+    leadTime: "In stock at our showroom"
   },
   {
     id: "srikandi-dining-chair",
     name: "Srikandi Dining Chair",
     category: "Seating",
     price: 1950000,
-    image: "assets/img/srikandi-dining-chair.svg",
+    image: bhfUnsplash("1592078615290-033ee584e267"),
     tag: null,
     featured: false,
-    short: "Kursi makan berjeruji vertikal, ringan namun kokoh.",
+    short: "A slatted-back dining chair — light in the hand, solid underfoot.",
     description:
-      "Srikandi memadukan sandaran jeruji vertikal dengan dudukan lebar yang nyaman. Bentuknya sederhana sehingga mudah dipadukan dengan meja makan gaya apa pun, dari skandinavia hingga japandi.",
+      "Srikandi pairs a vertical slatted back with a generous seat. Its quiet profile sits comfortably with almost any dining table, from Scandinavian to Japandi interiors, and its solid-wood joinery is built for daily use.",
     dimensions: "45 × 52 × 88 cm",
-    material: "Jati solid / Mahoni",
-    finish: "Natural matte / Hitam duco",
-    leadTime: "Ready stock di showroom"
+    material: "Solid teak / mahogany",
+    finish: "Natural matte / Black stain",
+    leadTime: "In stock at our showroom"
   },
   {
     id: "bima-sofa",
     name: "Bima Three-Seat Sofa",
     category: "Seating",
     price: 12500000,
-    image: "assets/img/bima-sofa.svg",
+    image: bhfUnsplash("1540574163026-643ea20ade25"),
     tag: "Featured",
     featured: true,
-    short: "Sofa tiga dudukan berangka jati dengan bantalan lepas-pasang.",
+    short: "A three-seater with an exposed teak base and loose cushions.",
     description:
-      "Bima adalah sofa tiga dudukan dengan rangka jati solid yang terlihat pada sisi lengan. Bantalan busa premium berbalut kain linen dapat dilepas untuk dicuci, dan pilihan kain dapat disesuaikan dengan interior Anda.",
+      "Bima is a three-seat sofa whose solid teak base stays visible along the arms and rail — the wood is the point. Premium foam cushions in removable linen covers can be re-covered in the fabric of your choice.",
     dimensions: "210 × 85 × 78 cm",
-    material: "Rangka jati solid, busa premium",
-    finish: "Kain linen (pilihan warna)",
-    leadTime: "Custom 4–6 minggu"
+    material: "Solid teak frame, premium foam",
+    finish: "Linen upholstery (custom colours)",
+    leadTime: "Made to order, 4–6 weeks"
   },
   {
     id: "shinta-coffee-table",
     name: "Shinta Coffee Table",
     category: "Tables",
     price: 3250000,
-    image: "assets/img/shinta-coffee-table.svg",
+    image: bhfUnsplash("1519710164239-da123dc03ef4"),
     tag: null,
     featured: true,
-    short: "Meja kopi oval dengan kaki menyilang yang anggun.",
+    short: "A round coffee table cut from a single teak board.",
     description:
-      "Permukaan oval Shinta dibuat dari papan jati utuh dengan tepian membulat halus. Kaki menyilang memberi kesan ringan sekaligus stabil, cocok menjadi titik tengah ruang keluarga minimalis.",
+      "Shinta's top is cut from a single teak board with a softly rounded edge. The splayed legs keep it visually light while staying firmly planted — a calm centrepiece for a minimalist living room.",
     dimensions: "120 × 60 × 42 cm",
-    material: "Jati solid (grade A)",
+    material: "Grade-A solid teak",
     finish: "Natural matte",
-    leadTime: "Ready stock di showroom"
+    leadTime: "In stock at our showroom"
   },
   {
     id: "rama-dining-table",
     name: "Rama Dining Table",
     category: "Tables",
     price: 8900000,
-    image: "assets/img/rama-dining-table.svg",
+    image: bhfUnsplash("1519643381401-22c77e60520e"),
     tag: "Best Seller",
     featured: true,
-    short: "Meja makan enam kursi dari papan jati tebal 4 cm.",
+    short: "A six-seat dining table with a 4 cm solid teak top.",
     description:
-      "Rama dibuat dari papan jati tebal 4 cm dengan kaki penuh di kedua ujung — sebuah pernyataan tentang kesederhanaan dan kekokohan. Tersedia panjang 160, 180, dan 200 cm, atau ukuran custom sesuai ruang Anda.",
+      "Rama is built from a 4 cm-thick teak top on full end-frame legs — a plain statement about simplicity and strength. Available in 160, 180 and 200 cm lengths, or made to measure for your room.",
     dimensions: "180 × 90 × 76 cm",
-    material: "Jati solid, top 4 cm",
+    material: "Solid teak, 4 cm top",
     finish: "Natural matte / Smoked oak",
-    leadTime: "Ready stock & custom"
+    leadTime: "In stock & made to order"
   },
   {
     id: "nakula-console",
     name: "Nakula Console Table",
     category: "Storage",
     price: 4200000,
-    image: "assets/img/nakula-console.svg",
+    image: bhfUnsplash("1597072689227-8882273e8f6a"),
     tag: null,
     featured: false,
-    short: "Meja konsol dua laci untuk foyer atau ruang tamu.",
+    short: "A slim two-drawer console for hallways and entryways.",
     description:
-      "Nakula adalah meja konsol ramping dengan dua laci berpegangan bulat. Kedalamannya hanya 35 cm sehingga pas untuk lorong dan foyer, tanpa mengorbankan ruang simpan.",
+      "Nakula is a slim console with two drawers on traditional wooden runners. At just 35 cm deep it slips into hallways and entries without giving up storage — or quietly doubles as a small writing desk.",
     dimensions: "120 × 35 × 80 cm",
-    material: "Jati solid & veneer jati",
-    finish: "Natural matte / Hitam duco",
-    leadTime: "Custom 3–4 minggu"
+    material: "Solid teak & teak veneer",
+    finish: "Natural matte / Black stain",
+    leadTime: "Made to order, 3–4 weeks"
   },
   {
     id: "dewi-bed",
     name: "Dewi Bed Frame",
     category: "Bedroom",
     price: 9800000,
-    image: "assets/img/dewi-bed.svg",
+    image: bhfUnsplash("1616594039964-ae9021a400a0"),
     tag: "Featured",
     featured: true,
-    short: "Ranjang berkepala tinggi dengan garis tenang dan proporsi rendah.",
+    short: "A tall-headboard bed with calm lines and a low profile.",
     description:
-      "Dewi mengusung headboard panel tinggi dan dipan rendah yang membuat kamar terasa lapang. Rangka jati solid dirakit tanpa baut terlihat; tersedia ukuran queen dan king, serta custom.",
+      "Dewi carries a tall panelled headboard over a low platform that makes the whole room feel larger. The solid teak frame assembles without visible bolts. Available in queen and king, or fully custom sizes.",
     dimensions: "170 × 210 × 110 cm (Queen)",
-    material: "Jati solid & panel jati",
+    material: "Solid teak & teak panels",
     finish: "Natural matte / Walnut dark",
-    leadTime: "Custom 4–6 minggu"
+    leadTime: "Made to order, 4–6 weeks"
   },
   {
     id: "sadewa-nightstand",
     name: "Sadewa Nightstand",
     category: "Bedroom",
     price: 2150000,
-    image: "assets/img/sadewa-nightstand.svg",
+    image: bhfUnsplash("1595526114035-0d45ed16cfbf"),
     tag: null,
     featured: false,
-    short: "Nakas dua laci dengan kaki miring yang ramping.",
+    short: "A two-drawer nightstand on slender tapered legs.",
     description:
-      "Pendamping ranjang Dewi, nakas Sadewa memiliki dua laci dengan rel kayu tradisional yang halus. Ukurannya kompak namun cukup untuk kebutuhan samping tempat tidur.",
+      "The companion to our Dewi bed, Sadewa holds two drawers on smooth traditional wooden runners. Compact on the floor, generous enough for everything a bedside needs.",
     dimensions: "45 × 40 × 55 cm",
-    material: "Jati solid",
+    material: "Solid teak",
     finish: "Natural matte / Walnut dark",
-    leadTime: "Ready stock di showroom"
+    leadTime: "In stock at our showroom"
   },
   {
     id: "gatot-wardrobe",
     name: "Gatot Wardrobe",
     category: "Bedroom",
     price: 14500000,
-    image: "assets/img/gatot-wardrobe.svg",
+    image: bhfUnsplash("1558997519-83ea9252edf8"),
     tag: null,
     featured: false,
-    short: "Lemari dua pintu dengan interior yang dapat dikonfigurasi.",
+    short: "A two-door wardrobe with a configurable interior.",
     description:
-      "Gatot adalah lemari pakaian dua pintu dengan pegangan kayu tersembunyi. Interiornya — rel gantung, ambalan, dan laci — dapat dikonfigurasi sesuai kebutuhan. Tersedia juga versi tiga pintu custom.",
+      "Gatot is a two-door wardrobe with recessed wooden pulls. The interior — hanging rail, shelves and drawers — is configured to how you actually dress. A three-door version is available on request.",
     dimensions: "120 × 60 × 210 cm",
-    material: "Jati solid & panel jati",
+    material: "Solid teak & teak panels",
     finish: "Natural matte / Smoked oak",
-    leadTime: "Custom 5–7 minggu"
+    leadTime: "Made to order, 5–7 weeks"
   },
   {
     id: "kresna-bookshelf",
     name: "Kresna Bookshelf",
     category: "Storage",
     price: 5600000,
-    image: "assets/img/kresna-bookshelf.svg",
+    image: bhfUnsplash("1594620302200-9a762244a156"),
     tag: "New",
     featured: false,
-    short: "Rak buku terbuka empat tingkat berproporsi arsitektural.",
+    short: "An open four-tier shelf with architectural proportions.",
     description:
-      "Kresna adalah rak terbuka empat tingkat dengan rangka jati tebal. Proporsinya yang tegas menjadikannya elemen arsitektural pada dinding, baik untuk buku, keramik, maupun koleksi Anda.",
+      "Kresna is an open four-tier shelf in a thick teak frame. Its firm proportions read as architecture against a wall — for books, ceramics, or whatever you collect.",
     dimensions: "95 × 35 × 180 cm",
-    material: "Jati solid",
-    finish: "Natural matte / Hitam duco",
-    leadTime: "Ready stock & custom"
+    material: "Solid teak",
+    finish: "Natural matte / Black stain",
+    leadTime: "In stock & made to order"
   },
   {
     id: "laksmana-sideboard",
     name: "Laksmana Sideboard",
     category: "Storage",
     price: 7800000,
-    image: "assets/img/laksmana-sideboard.svg",
+    image: bhfUnsplash("1616046229478-9901c5536a45"),
     tag: "New",
     featured: true,
-    short: "Bufet tiga pintu dengan garis horizontal yang panjang dan tenang.",
+    short: "A long, low three-door sideboard with quiet horizontal lines.",
     description:
-      "Laksmana membentang rendah dan panjang — bufet tiga pintu dengan ambalan dalam yang dapat diatur. Cocok sebagai kredensa ruang makan maupun kabinet media di ruang keluarga.",
+      "Laksmana runs long and low — a three-door sideboard with adjustable shelving behind every door. Equally at home as a dining-room credenza or a media cabinet in the living room.",
     dimensions: "180 × 45 × 75 cm",
-    material: "Jati solid & veneer jati",
+    material: "Solid teak & teak veneer",
     finish: "Natural matte / Walnut dark",
-    leadTime: "Ready stock & custom"
+    leadTime: "In stock & made to order"
   },
   {
-    id: "drupadi-bench",
-    name: "Drupadi Bench",
+    id: "drupadi-stool",
+    name: "Drupadi Stool",
     category: "Seating",
-    price: 2750000,
-    image: "assets/img/drupadi-bench.svg",
+    price: 1450000,
+    image: bhfUnsplash("1503602642458-232111445657"),
     tag: null,
     featured: false,
-    short: "Bangku panjang serbaguna untuk meja makan atau foyer.",
+    short: "A solid-wood stool that works anywhere in the house.",
     description:
-      "Drupadi adalah bangku jati sepanjang 150 cm dengan penopang silang bawah. Serbaguna: pendamping meja Rama, bangku foyer, atau dudukan di ujung ranjang.",
-    dimensions: "150 × 38 × 45 cm",
-    material: "Jati solid",
+      "Drupadi is a simple solid-wood stool with through-tenon joinery — extra seating at the dining table, a bedside perch, or a stand for a favourite plant. Simple objects, done properly, last the longest.",
+    dimensions: "38 × 38 × 45 cm",
+    material: "Solid teak",
     finish: "Natural matte",
-    leadTime: "Ready stock di showroom"
+    leadTime: "In stock at our showroom"
   }
 ];
 

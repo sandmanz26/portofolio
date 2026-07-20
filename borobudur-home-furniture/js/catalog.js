@@ -27,7 +27,7 @@
 
     grid.innerHTML = items.length
       ? items.map(bhfProductCardHTML).join("")
-      : '<p class="catalog-empty">Belum ada produk pada kategori ini.</p>';
+      : '<p class="catalog-empty">No products in this category yet.</p>';
 
     window.bhfObserveReveals();
   }
