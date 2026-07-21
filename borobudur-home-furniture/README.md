@@ -46,6 +46,8 @@ public/
   .htaccess                 Apache rewrite so client-side routes survive a
                              direct link or page refresh on cPanel
   robots.txt                 disallows /admin from search engines
+vercel.json                 SPA rewrite for Vercel previews (same purpose as
+                             .htaccess, different host — see "Deploying" below)
 ```
 
 ## Running locally
@@ -137,7 +139,27 @@ switch from `localStorage` to Supabase:
    security policies on the `products` table so only authenticated
    admin users can write.
 
-## Deploying to cPanel
+## Deploying
+
+This is a client-side single-page app: React Router handles routes like
+`/catalog`, `/product/rama-dining-table` and `/admin` entirely in the
+browser, but they are all really just `index.html`. Any host serving this
+build **must** be told to fall back to `index.html` for unknown paths, or a
+direct link / refresh / bookmark to anything but `/` will 404. That fallback
+is configured differently per host:
+
+- **Vercel** (e.g. a `*.vercel.app` preview): handled by `vercel.json` at
+  the project root, already included. If Vercel is building this project
+  with its **Root Directory** setting pointed at `borobudur-home-furniture/`,
+  no extra setup is needed — just push and it deploys. If `/admin` (or any
+  route besides `/`) 404s with a plain "NOT_FOUND" page from Vercel itself
+  (not a blank page — check with curl or the Network tab), the most common
+  cause is `vercel.json` not being picked up because the Root Directory is
+  set to the repo root instead of this folder.
+- **cPanel** (see below): handled by `public/.htaccess`, which Apache reads
+  automatically once uploaded alongside the built files.
+
+### Deploying to cPanel
 
 1. Run `npm run build` — this produces a static `dist/` folder (HTML, JS,
    CSS, `.htaccess` and `robots.txt` copied from `public/`).
