@@ -2,15 +2,25 @@
    BHF — Product data layer
 
    All product access goes through the functions at the bottom
-   (fetch/create/update/delete). Right now they read and write a
-   browser localStorage copy of SEED_PRODUCTS so the admin panel
-   works before a backend exists. When Supabase lands, replace the
-   bodies of these functions with supabase.from("products") calls
-   returning the same shape — no page or admin component needs to
-   change, since none of them touch storage directly.
+   (fetch/create/update/delete/reset). Each one dispatches to one
+   of two backends:
+
+   - local*  — reads/writes a browser localStorage copy of
+     SEED_PRODUCTS. Used automatically whenever Supabase isn't
+     configured, so the admin panel works with zero setup.
+   - supabase*  — reads/writes the real `products` table via
+     src/lib/supabaseClient.js. Used automatically once
+     VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY are set (see
+     README's "Moving to Supabase" section, and supabase/schema.sql
+     for the table + policies these functions expect).
+
+   No page or admin component touches storage directly, and none of
+   them need to change when you switch backends — only this file
+   (and GalleryEditor.jsx's file-upload path) know the difference.
    ============================================================ */
 
 import { uniqueSlug } from "../utils/slug.js";
+import { supabase, isSupabaseConfigured } from "../lib/supabaseClient.js";
 
 function unsplash(id, width = 1200) {
   return `https://images.unsplash.com/photo-${id}?q=80&w=${width}&auto=format&fit=crop`;
@@ -18,7 +28,7 @@ function unsplash(id, width = 1200) {
 
 export const CATEGORIES = ["All", "Seating", "Tables", "Bedroom", "Storage"];
 
-const SEED_PRODUCTS = [
+export const SEED_PRODUCTS = [
   {
     id: "arjuna-lounge-chair",
     name: "Arjuna Lounge Chair",
@@ -221,15 +231,36 @@ export function coverImage(product) {
   return product?.images?.[0] || null;
 }
 
-/* ---- localStorage-backed store (temporary, pre-Supabase) ---- */
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function newProductDefaults(overrides = {}) {
+  const name = (overrides.name || "New Product").trim() || "New Product";
+  return {
+    name,
+    category: overrides.category || "Seating",
+    price: overrides.price ?? 0,
+    images: overrides.images || [],
+    tag: overrides.tag ?? null,
+    featured: overrides.featured ?? false,
+    short: overrides.short || "",
+    description: overrides.description || "",
+    dimensions: overrides.dimensions || "",
+    material: overrides.material || "",
+    finish: overrides.finish || "",
+    leadTime: overrides.leadTime || "",
+  };
+}
+
+/* ============================================================
+   Local backend — localStorage copy of SEED_PRODUCTS.
+   Active whenever Supabase isn't configured.
+   ============================================================ */
 
 const STORAGE_KEY = "bhf_products_v1";
 let store = null;
 let persistenceOk = true;
-
-function clone(value) {
-  return JSON.parse(JSON.stringify(value));
-}
 
 function readFromStorage() {
   try {
@@ -265,11 +296,6 @@ function setStore(next) {
   return typeof window !== "undefined" ? persist(store) : null;
 }
 
-/** False if localStorage is unavailable or full — edits still work for this session only. */
-export function isPersistenceAvailable() {
-  return persistenceOk;
-}
-
 function persistErrorMessage(err) {
   if (err?.name === "QuotaExceededError") {
     return "Storage is full — remove a photo or two, then try again. (Your change is kept for this session only.)";
@@ -277,56 +303,37 @@ function persistErrorMessage(err) {
   return "Couldn't save changes in this browser. (Your change is kept for this session only.)";
 }
 
-/* ---- Read access ---- */
-
-export async function fetchProducts(category = "All") {
+async function localFetchProducts(category) {
   const products = getStore();
   return category === "All" ? products.slice() : products.filter((p) => p.category === category);
 }
 
-export async function fetchProduct(id) {
+async function localFetchProduct(id) {
   return getStore().find((p) => p.id === id) ?? null;
 }
 
-export async function fetchFeaturedProducts(limit = 6) {
+async function localFetchFeaturedProducts(limit) {
   return getStore()
     .filter((p) => p.featured)
     .slice(0, limit);
 }
 
-export async function fetchRelatedProducts(product, limit = 3) {
+async function localFetchRelatedProducts(product, limit) {
   return getStore()
     .filter((p) => p.id !== product.id)
     .sort((a, b) => (b.category === product.category) - (a.category === product.category))
     .slice(0, limit);
 }
 
-/* ---- Write access (admin panel) ---- */
-
-export async function createProduct(overrides = {}) {
+async function localCreateProduct(overrides) {
   const products = getStore();
-  const name = (overrides.name || "New Product").trim() || "New Product";
-  const product = {
-    id: uniqueSlug(name, products),
-    name,
-    category: overrides.category || "Seating",
-    price: overrides.price ?? 0,
-    images: overrides.images || [],
-    tag: overrides.tag ?? null,
-    featured: overrides.featured ?? false,
-    short: overrides.short || "",
-    description: overrides.description || "",
-    dimensions: overrides.dimensions || "",
-    material: overrides.material || "",
-    finish: overrides.finish || "",
-    leadTime: overrides.leadTime || "",
-  };
+  const product = { id: uniqueSlug(overrides.name || "New Product", products), ...newProductDefaults(overrides) };
   const err = setStore([product, ...products]);
   if (err) throw new Error(persistErrorMessage(err));
   return product;
 }
 
-export async function updateProduct(id, patch) {
+async function localUpdateProduct(id, patch) {
   const products = getStore();
   const idx = products.findIndex((p) => p.id === id);
   if (idx === -1) throw new Error("Product not found: " + id);
@@ -337,16 +344,173 @@ export async function updateProduct(id, patch) {
   return next[idx];
 }
 
-export async function deleteProduct(id) {
+async function localDeleteProduct(id) {
   const next = getStore().filter((p) => p.id !== id);
   const err = setStore(next);
   if (err) throw new Error(persistErrorMessage(err));
 }
 
-/** Restores the original demo catalog, discarding all admin edits. */
-export async function resetProducts() {
+async function localResetProducts() {
   const next = clone(SEED_PRODUCTS);
   const err = setStore(next);
   if (err) throw new Error(persistErrorMessage(err));
   return next.slice();
+}
+
+/* ============================================================
+   Supabase backend — active once VITE_SUPABASE_URL and
+   VITE_SUPABASE_ANON_KEY are set. Expects the `products` table
+   created by supabase/schema.sql.
+   ============================================================ */
+
+/** DB row (snake_case) -> product (camelCase), the shape every page expects. */
+function fromRow(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    category: row.category,
+    price: Number(row.price) || 0,
+    images: row.images || [],
+    tag: row.tag ?? null,
+    featured: Boolean(row.featured),
+    short: row.short || "",
+    description: row.description || "",
+    dimensions: row.dimensions || "",
+    material: row.material || "",
+    finish: row.finish || "",
+    leadTime: row.lead_time || "",
+  };
+}
+
+/** product/patch (camelCase) -> DB row (snake_case). Only includes keys that were passed in. */
+function toRow(fields) {
+  const row = {};
+  if ("id" in fields) row.id = fields.id;
+  if ("name" in fields) row.name = fields.name;
+  if ("category" in fields) row.category = fields.category;
+  if ("price" in fields) row.price = fields.price;
+  if ("images" in fields) row.images = fields.images;
+  if ("tag" in fields) row.tag = fields.tag;
+  if ("featured" in fields) row.featured = fields.featured;
+  if ("short" in fields) row.short = fields.short;
+  if ("description" in fields) row.description = fields.description;
+  if ("dimensions" in fields) row.dimensions = fields.dimensions;
+  if ("material" in fields) row.material = fields.material;
+  if ("finish" in fields) row.finish = fields.finish;
+  if ("leadTime" in fields) row.lead_time = fields.leadTime;
+  return row;
+}
+
+async function supabaseFetchProducts(category) {
+  let query = supabase.from("products").select("*").order("created_at", { ascending: false });
+  if (category !== "All") query = query.eq("category", category);
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+  return (data || []).map(fromRow);
+}
+
+async function supabaseFetchProduct(id) {
+  const { data, error } = await supabase.from("products").select("*").eq("id", id).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data ? fromRow(data) : null;
+}
+
+async function supabaseFetchFeaturedProducts(limit) {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("featured", true)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(error.message);
+  return (data || []).map(fromRow);
+}
+
+async function supabaseFetchRelatedProducts(product, limit) {
+  // The catalog is small enough that filtering client-side is simpler
+  // (and cheaper) than a second round-trip with an OR/priority query.
+  const all = await supabaseFetchProducts("All");
+  return all
+    .filter((p) => p.id !== product.id)
+    .sort((a, b) => (b.category === product.category) - (a.category === product.category))
+    .slice(0, limit);
+}
+
+async function supabaseCreateProduct(overrides) {
+  const existing = await supabaseFetchProducts("All");
+  const fields = newProductDefaults(overrides);
+  const id = uniqueSlug(fields.name, existing);
+  const { data, error } = await supabase
+    .from("products")
+    .insert(toRow({ id, ...fields }))
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+  return fromRow(data);
+}
+
+async function supabaseUpdateProduct(id, patch) {
+  const { data, error } = await supabase.from("products").update(toRow(patch)).eq("id", id).select().maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error("Product not found: " + id);
+  return fromRow(data);
+}
+
+async function supabaseDeleteProduct(id) {
+  const { error } = await supabase.from("products").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+async function supabaseResetProducts() {
+  const { error: deleteError } = await supabase.from("products").delete().not("id", "is", null);
+  if (deleteError) throw new Error(deleteError.message);
+  const rows = SEED_PRODUCTS.map((p) => toRow(p));
+  const { data, error } = await supabase.from("products").insert(rows).select();
+  if (error) throw new Error(error.message);
+  return (data || []).map(fromRow);
+}
+
+/* ============================================================
+   Public API — dispatches to whichever backend is active.
+   Pages and admin components only ever call these.
+   ============================================================ */
+
+/** False only for the local backend when localStorage is unavailable or full. */
+export function isPersistenceAvailable() {
+  return isSupabaseConfigured || persistenceOk;
+}
+
+export async function fetchProducts(category = "All") {
+  return isSupabaseConfigured ? supabaseFetchProducts(category) : localFetchProducts(category);
+}
+
+export async function fetchProduct(id) {
+  return isSupabaseConfigured ? supabaseFetchProduct(id) : localFetchProduct(id);
+}
+
+export async function fetchFeaturedProducts(limit = 6) {
+  return isSupabaseConfigured ? supabaseFetchFeaturedProducts(limit) : localFetchFeaturedProducts(limit);
+}
+
+export async function fetchRelatedProducts(product, limit = 3) {
+  return isSupabaseConfigured
+    ? supabaseFetchRelatedProducts(product, limit)
+    : localFetchRelatedProducts(product, limit);
+}
+
+export async function createProduct(overrides = {}) {
+  return isSupabaseConfigured ? supabaseCreateProduct(overrides) : localCreateProduct(overrides);
+}
+
+export async function updateProduct(id, patch) {
+  return isSupabaseConfigured ? supabaseUpdateProduct(id, patch) : localUpdateProduct(id, patch);
+}
+
+export async function deleteProduct(id) {
+  return isSupabaseConfigured ? supabaseDeleteProduct(id) : localDeleteProduct(id);
+}
+
+/** Restores the original demo catalog, discarding all admin edits. */
+export async function resetProducts() {
+  return isSupabaseConfigured ? supabaseResetProducts() : localResetProducts();
 }

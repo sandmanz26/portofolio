@@ -101,7 +101,7 @@ export default function AdminProductEditor() {
 
           <section className="admin-fieldset">
             <h2>Gallery</h2>
-            <GalleryEditor images={product.images} onChange={(images) => save({ images })} />
+            <GalleryEditor images={product.images} onChange={(images) => save({ images })} productId={product.id} />
           </section>
 
           <section className="admin-fieldset">

@@ -3,10 +3,18 @@
 Website for Borobudur Home Furniture — a solid wood furniture manufacturer in
 Yogyakarta, established 2016. Built with **React 18 + React Router**, bundled
 by **Vite**. Product data lives behind a small set of async functions in
-`src/data/products.js`; today they read/write a `localStorage` copy of the
-catalog so the admin panel works with no backend at all, and later they can
-be swapped for **Supabase** queries without touching any page or admin
-component (see "Moving to Supabase" below).
+`src/data/products.js`, which automatically dispatch to one of two backends:
+
+- **No Supabase configured** (default, zero setup): reads/writes a
+  `localStorage` copy of the catalog, and `/admin` is guarded by a plain
+  passphrase. This is what you get out of the box.
+- **Supabase configured**: reads/writes the real `products` table, gallery
+  uploads go to Supabase Storage, and `/admin` is guarded by real Supabase
+  Auth (email/password) instead of a passphrase.
+
+The switch is automatic and based on whether `VITE_SUPABASE_URL` /
+`VITE_SUPABASE_ANON_KEY` are set — no page or admin component needs to
+change either way. See "Moving to Supabase" below for the exact steps.
 
 ## Pages / Routes
 
@@ -30,12 +38,15 @@ src/
     admin/                InlineText, InlineSelect, GalleryEditor
   hooks/useReveal.js       scroll-reveal animation hook
   pages/                   one file per public route
-    admin/                 AdminLayout (passphrase gate + shell), AdminProducts,
-                            AdminProductEditor
+    admin/                 AdminLayout (passphrase OR Supabase Auth gate + shell),
+                            AdminProducts, AdminProductEditor
   data/
-    products.js            product data + fetch/create/update/delete functions
+    products.js            product data + fetch/create/update/delete functions —
+                            dispatches to localStorage or Supabase automatically
     site.js                 brand name, address, phone, WhatsApp helper
-    adminAuth.js             TEMPORARY admin passphrase (see below)
+    adminAuth.js             TEMPORARY admin passphrase, only used pre-Supabase
+  lib/
+    supabaseClient.js         Supabase client + isSupabaseConfigured flag
   utils/
     image.js                 resizes/compresses uploaded photos client-side
     slug.js                   generates a URL-safe id for new products
@@ -46,8 +57,13 @@ public/
   .htaccess                 Apache rewrite so client-side routes survive a
                              direct link or page refresh on cPanel
   robots.txt                 disallows /admin from search engines
+supabase/
+  schema.sql                 run this once in the Supabase SQL Editor — creates
+                              the products table, RLS policies, storage bucket
+                              + policies, and the 12 demo products
 vercel.json                 SPA rewrite for Vercel previews (same purpose as
                              .htaccess, different host — see "Deploying" below)
+.env.example                 copy to .env.local and fill in to enable Supabase
 ```
 
 ## Running locally
@@ -63,8 +79,11 @@ npm run preview   # serve the dist/ build locally to sanity-check it
 
 Visit `/admin` (e.g. `http://localhost:5173/admin`).
 
-- **Gate**: a passphrase prompt guards the panel — see "Security note" below.
-  The passphrase is set in `src/data/adminAuth.js`.
+- **Gate**: without Supabase configured, a passphrase prompt guards the panel
+  — see "Security note" below. The passphrase is set in
+  `src/data/adminAuth.js` (default: `bhf-admin-2026`). Once Supabase is
+  configured, this automatically becomes a real email/password sign-in
+  instead (see "Moving to Supabase").
 - **Product list** (`/admin`): name, category, price, tag and "featured" are
   editable directly in the table. Click a cell, change it, click away (or
   press Enter) — it saves immediately, no Save button. A green flash confirms
@@ -77,67 +96,130 @@ Visit `/admin` (e.g. `http://localhost:5173/admin`).
   pattern, plus:
   - **Gallery**: drag photos onto the drop zone (or click it to browse
     files). Each photo is resized and compressed in the browser before
-    being stored — there's no upload backend yet, so photos are kept as
-    part of the product record itself. You can also paste an image URL
-    (handy for reusing stock photography). Use the arrow buttons to reorder,
-    "Set cover" to promote a photo to the front (it becomes the image shown
-    on cards and as the default on the product page), and "Remove" to
-    delete one.
+    being stored. Without Supabase, they're kept as data URLs on the
+    product record itself; with Supabase configured, they're uploaded to
+    the `product-photos` Storage bucket instead and only the public URL is
+    stored. You can also paste an image URL directly either way (handy for
+    reusing stock photography). Use the arrow buttons to reorder, "Set
+    cover" to promote a photo to the front (it becomes the image shown on
+    cards and as the default on the product page), and "Remove" to delete
+    one.
   - A live preview of the product card sits alongside the form.
 - **Delete product**: at the bottom of the editor, or from the list table.
 
 ### Where edits are stored right now
 
-There is no backend yet, so admin edits (including uploaded photos, as
-data URLs) are saved to the browser's `localStorage`, keyed per-browser —
-not shared between devices or visitors, and cleared if the user clears site
-data. This is intentional: it lets the whole admin experience be built and
-used today, and is designed to be replaced by Supabase with minimal changes
-(see below). Because uploaded photos are stored as base64 text, a browser's
-`localStorage` quota (usually 5–10MB) can fill up after many high-resolution
-photos — the panel will show a message if a save fails for this reason.
+Without Supabase configured, admin edits (including uploaded photos, as data
+URLs) are saved to the browser's `localStorage`, keyed per-browser — not
+shared between devices or visitors, and cleared if the user clears site data.
+This is intentional: it lets the whole admin experience be built and used
+immediately with zero setup. Because uploaded photos are stored as base64
+text, a browser's `localStorage` quota (usually 5–10MB) can fill up after
+many high-resolution photos — the panel will show a message if a save fails
+for this reason. Once Supabase is configured (below), none of this applies:
+data lives in a real database and photos in real object storage, shared by
+everyone.
 
-### Security note (read before deploying)
+### Security note (read before deploying without Supabase)
 
 The `/admin` passphrase in `src/data/adminAuth.js` is **not real
 authentication** — it's a client-side string check meant only to keep casual
 visitors out of a preview build. Anyone who inspects the deployed JavaScript
 can read it. Do not treat it as access control for real business data.
 `public/robots.txt` also disallows `/admin` from search engines, which
-prevents indexing but is not security either. Replace the gate with Supabase
-Auth (below) before this panel manages real inventory.
+prevents indexing but is not security either. Complete the Supabase setup
+below — which replaces this with real authentication — before this panel
+manages real inventory.
 
 ## Moving to Supabase
 
-All product reads/writes already go through one file, `src/data/products.js`
-— `fetchProducts`, `fetchProduct`, `fetchFeaturedProducts`,
-`fetchRelatedProducts`, `createProduct`, `updateProduct`, `deleteProduct`,
-`resetProducts`. No page or admin component touches storage directly. To
-switch from `localStorage` to Supabase:
+All product reads/writes already go through one file, `src/data/products.js`,
+which automatically switches from the `localStorage` backend to a Supabase
+backend as soon as `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set.
+The gallery uploader (`GalleryEditor.jsx`) and the admin gate
+(`AdminLayout.jsx`) do the same. Nothing else needs to change — follow these
+steps:
 
-1. `npm install @supabase/supabase-js`
-2. Create a Supabase client (e.g. `src/lib/supabaseClient.js`) using an anon
-   key exposed as a Vite env var (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
-   in a `.env` file — Vite only exposes vars prefixed `VITE_` to the browser).
-   `.env` files are already excluded via `.gitignore`.
-3. Create a `products` table matching the product shape used throughout the
-   app: `id` (text, primary key), `name`, `category`, `price` (numeric),
-   `images` (jsonb array of URLs), `tag`, `featured` (bool), `short`,
-   `description`, `dimensions`, `material`, `finish`, `lead_time`.
-4. Replace the bodies of the functions in `products.js` with
-   `supabase.from("products")` calls returning the same shape. Delete the
-   `localStorage` plumbing (`getStore`/`setStore`/`persist`) at the same time.
-5. For the gallery uploader specifically: create a Supabase Storage bucket
-   (e.g. `product-photos`), and in `GalleryEditor.jsx` swap the call to
-   `fileToCompressedDataUrl` (which returns a base64 string) for a
-   `supabase.storage.from("product-photos").upload(...)` call that returns a
-   public URL instead. The rest of the gallery UI (reorder, set cover,
-   remove) needs no changes since it just operates on an array of URL
-   strings.
-6. Replace `src/data/adminAuth.js` and the gate in `AdminLayout.jsx` with
-   Supabase Auth (e.g. email/password or magic link), and add row-level
-   security policies on the `products` table so only authenticated
-   admin users can write.
+### 1. Create a Supabase project
+
+Go to [supabase.com](https://supabase.com), sign in, and create a new
+project (pick any name/region; note the database password somewhere safe,
+though this app doesn't need it directly).
+
+### 2. Create the table, storage bucket, and demo data
+
+In the Supabase Dashboard, open **SQL Editor → New query**, paste the
+entire contents of **`supabase/schema.sql`** from this repo, and click
+**Run**. This one script creates:
+
+- the `products` table with the columns the app expects
+- Row Level Security policies: anyone can read, only signed-in
+  (`authenticated`) users can insert/update/delete
+- the `product-photos` Storage bucket, public-read / authenticated-write
+- the same 12 demo products the site already ships with, so it looks
+  identical right after switching over
+
+It's safe to re-run if it fails partway through (every statement uses
+`if not exists` / `drop ... if exists` / `on conflict do nothing`).
+
+### 3. Create an admin login
+
+In the Dashboard, go to **Authentication → Users → Add user**, and create
+one (or more) accounts with an email and password — this is what you'll use
+to sign in at `/admin` once Supabase is active. (Leave "Auto Confirm User"
+checked so you don't need to click an email confirmation link.)
+
+### 4. Get your API keys
+
+In the Dashboard, go to **Settings → API**. You need two values:
+
+- **Project URL** (e.g. `https://xxxxxxxxxxxx.supabase.co`)
+- **anon / public** key (a long string under "Project API keys" — **not**
+  the `service_role` key, which must never be exposed to the browser)
+
+### 5. Set the environment variables
+
+**For local development**: copy `.env.example` to `.env.local` in this
+folder and fill in the two values from step 4:
+
+```sh
+cp .env.example .env.local
+```
+
+```
+VITE_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ...
+```
+
+`.env.local` is already excluded by `.gitignore` — never commit real keys.
+Restart `npm run dev` after creating/editing it.
+
+**For a deployed build** (Vercel or cPanel), the same two variables need to
+be set wherever the build runs, since Vite bakes them into the JS bundle at
+build time:
+
+- **Vercel**: Project → Settings → Environment Variables, add both, then
+  redeploy (a new build is required — setting them alone doesn't affect an
+  already-built deployment).
+- **cPanel**: there's no server-side build step, so set them in a `.env.local`
+  file (or export them in your shell) on whatever machine you run
+  `npm run build` on before uploading `dist/` — the values get compiled into
+  the JS at that point.
+
+### 6. Verify
+
+Once deployed (or in `npm run dev` locally) with the env vars set:
+
+- The public site should look unchanged — it now reads from Supabase.
+- Visiting `/admin` should show an email/password sign-in form instead of
+  the passphrase prompt. Sign in with the account from step 3.
+- Try editing a product, adding a photo, and reloading — changes should
+  persist (they're in the real database and bucket now, not
+  `localStorage`).
+
+If something doesn't load, check the browser console — `products.js`
+surfaces Supabase/Postgres errors (e.g. a missing table, or an RLS policy
+blocking a write) as thrown `Error`s with the original message.
 
 ## Deploying
 
