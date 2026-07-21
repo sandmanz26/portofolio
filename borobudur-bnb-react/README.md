@@ -59,6 +59,49 @@ as plain JS arrays/objects consumed by generic components (`IndexRow`,
 an object to the array — no new components or routes needed (routes like
 `/room/:slug` are already dynamic).
 
+## Admin content editor (`/admin`)
+
+An inline "click-to-edit" mode, in the spirit of Elementor/WPBakery, lets
+non-technical staff update most of the site's real content without touching
+code:
+
+1. Go to `/admin` and enter the password (`src/admin/config.js` —
+   **change `ADMIN_PASSWORD` before sharing this link**; it's a soft
+   client-side gate, not real authentication, since the site has no backend).
+2. Once unlocked, open any page — every editable title, description, price,
+   and image is outlined with a dashed blue border and a small ✎ badge.
+   Click one to open the edit panel on the right.
+3. Text fields show a character-limit rule and counter; image fields show a
+   recommended aspect ratio / minimum resolution and validate the pasted URL
+   against it (loads the image off-DOM and checks its real dimensions)
+   before you save.
+4. A bottom toolbar tracks how many unsaved changes exist and offers
+   **Export JSON**, **Import JSON**, **Reset all**, and **Exit**.
+
+What's editable: site name/tagline/phone/email/address/social links (Nav,
+Footer, Contact), and per room/activity — name, description, price, story
+text, specs, highlights, and every photo — plus workshops, testimonials, and
+the facilities list.
+
+Not yet wired up (still requires a code change): page narrative copy (the
+"Our Story" paragraphs, section intros), FAQ items, policy/meeting-rate
+tables, and the curated photo galleries on Home/Facility.
+
+### How edits persist
+
+There's no backend, so edits live in the browser's `localStorage` as a
+draft while you work (survives reloads, but is local to that browser).
+To make changes permanent:
+
+1. Click **Export JSON** — downloads `borobudur-bnb-content-YYYY-MM-DD.json`,
+   a flat `{ "rooms.joglo.name": "...", ... }` map of every override.
+2. Send that file to whoever maintains the code. They open it, copy the
+   relevant values into `src/data/*.js` (matching the dot path to the
+   field), and rebuild/redeploy.
+3. Alternatively, **Import JSON** on another browser/device re-applies a
+   previously exported file as the active draft, so you can keep editing
+   where you left off.
+
 ## Later: Supabase
 
 The data layer was deliberately kept as flat arrays with simple finder

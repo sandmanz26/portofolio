@@ -8,6 +8,7 @@ import Gallery from '../components/Gallery';
 import Faq from '../components/Faq';
 import MobileCta from '../components/MobileCta';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import Editable from '../admin/Editable';
 
 const MEETING_ROWS = [
   ['Full board meeting', 'Rp 450.000/pax — room, 3 meals, 2× coffee break, projector, sound, Wi-Fi. Min. 10 guests.'],
@@ -63,11 +64,15 @@ export default function Facility() {
       <section className="section section--flush-top">
         <div className="container">
           <Reveal className="fac-grid">
-            {facilities.map((f) => (
+            {facilities.map((f, i) => (
               <div className="fac-item" key={f.no}>
                 <span className="fac-item__no">{f.no}</span>
-                <h3>{f.title}</h3>
-                <p>{f.text}</p>
+                <h3>
+                  <Editable path={`facilities.${i}.title`} fallback={f.title} rules={{ label: 'Title', maxLength: 50 }} />
+                </h3>
+                <p>
+                  <Editable path={`facilities.${i}.text`} fallback={f.text} multiline rules={{ label: 'Description', maxLength: 180 }} />
+                </p>
               </div>
             ))}
           </Reveal>

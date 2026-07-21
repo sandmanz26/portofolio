@@ -5,6 +5,8 @@ import ContactForm from '../components/ContactForm';
 import Faq from '../components/Faq';
 import MobileCta from '../components/MobileCta';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useContent } from '../admin/ContentContext';
+import Editable from '../admin/Editable';
 
 const FAQ_ITEMS = [
   { q: 'How quickly will you respond?', a: 'Usually within the hour via WhatsApp, even outside office hours — the host family lives on site. Email replies may take up to a day.' },
@@ -16,6 +18,10 @@ const FAQ_ITEMS = [
 
 export default function Contact() {
   useDocumentTitle('Contact Us — Borobudur BnB, Magelang');
+  const { overrides } = useContent();
+  const phone = overrides['site.phone'] ?? SITE.phone;
+  const email = overrides['site.email'] ?? SITE.email;
+  const phoneHref = `tel:${phone.replace(/[^\d+]/g, '')}`;
 
   return (
     <>
@@ -40,13 +46,15 @@ export default function Contact() {
               <div className="contact-list">
                 <div className="contact-item">
                   <span className="k">Address</span>
-                  <span className="v">{SITE.address}</span>
+                  <span className="v">
+                    <Editable path="site.address" fallback={SITE.address} multiline rules={{ label: 'Full address', maxLength: 220 }} />
+                  </span>
                 </div>
                 <div className="contact-item">
                   <span className="k">WhatsApp</span>
                   <span className="v">
                     <a href={`https://wa.me/6281390000123`} target="_blank" rel="noopener">
-                      {SITE.phone}
+                      <Editable path="site.phone" fallback={phone} rules={{ label: 'Phone', maxLength: 24 }} />
                     </a>{' '}
                     — fastest way to reach us, day or night
                   </span>
@@ -54,7 +62,10 @@ export default function Contact() {
                 <div className="contact-item">
                   <span className="k">Email</span>
                   <span className="v">
-                    <a href={`mailto:${SITE.email}`}>{SITE.email}</a> — for group bookings &amp; invoices
+                    <a href={`mailto:${email}`}>
+                      <Editable path="site.email" fallback={email} rules={{ label: 'Email', maxLength: 60 }} />
+                    </a>{' '}
+                    — for group bookings &amp; invoices
                   </span>
                 </div>
                 <div className="contact-item">
@@ -97,7 +108,7 @@ export default function Contact() {
       </section>
 
       <MobileCta
-        left={{ label: 'Call', href: SITE.phoneHref, external: false }}
+        left={{ label: 'Call', href: phoneHref, external: false }}
         right={{ label: 'Booking form', href: '#contact-form', external: false }}
       />
     </>

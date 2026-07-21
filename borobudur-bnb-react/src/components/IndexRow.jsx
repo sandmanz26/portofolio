@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
 import Reveal from './Reveal';
 import { IconArrow } from './Icons';
+import EditableImage from '../admin/EditableImage';
 
 // A single numbered row in a `.room-index` list — used for both the room
 // and activity listings (and the homepage teasers of each).
-export default function IndexRow({ no, title, meta, desc, price, pricePer, detailHref, bookHref, image, imageAlt }) {
+export default function IndexRow({ no, title, meta, desc, price, pricePer, detailHref, bookHref, image, imageAlt, editImagePath, imageRules }) {
   return (
     <Reveal as="article" className="room-row">
       <span className="room-row__no">{no}</span>
@@ -29,7 +30,11 @@ export default function IndexRow({ no, title, meta, desc, price, pricePer, detai
         </div>
       </div>
       <div className="room-row__media">
-        <img src={image} alt={imageAlt} loading="lazy" />
+        {editImagePath ? (
+          <EditableImage path={editImagePath} fallbackSrc={image} alt={imageAlt} rules={imageRules} loading="lazy" />
+        ) : (
+          <img src={image} alt={imageAlt} loading="lazy" />
+        )}
       </div>
     </Reveal>
   );

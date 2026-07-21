@@ -7,6 +7,14 @@ import Reveal from '../components/Reveal';
 import Faq from '../components/Faq';
 import MobileCta from '../components/MobileCta';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useContent } from '../admin/ContentContext';
+import Editable from '../admin/Editable';
+import EditableImage from '../admin/EditableImage';
+import EditListButton from '../admin/EditListButton';
+import { encodeSpecs, decodeSpecs } from '../admin/textCodec';
+
+const HERO_IMAGE_RULES = { aspect: '3:2', minWidth: 1400, minHeight: 933 };
+const THUMB_IMAGE_RULES = { aspect: '1:1', minWidth: 500, minHeight: 500 };
 
 const FAQ_ITEMS = [
   {
@@ -42,6 +50,7 @@ const POLICY_ROWS = [
 
 export default function RoomList() {
   useDocumentTitle('Rooms & Rates — Borobudur BnB, Magelang');
+  const { overrides } = useContent();
 
   return (
     <>
@@ -70,55 +79,77 @@ export default function RoomList() {
         </div>
       </section>
 
-      {rooms.map((room, i) => (
-        <section className={`section${i % 2 === 1 ? ' section--band' : ''}`} id={room.slug} key={room.slug}>
-          <div className="container">
-            <Reveal className={`room-detail${i % 2 === 1 ? ' room-detail--rev' : ''}`}>
-              <div className="room-detail__gallery">
-                <div className="room-detail__hero">
-                  <img src={img(room.hero.id, 1400)} alt={room.hero.alt} loading="lazy" />
+      {rooms.map((room, i) => {
+        const p = (field) => `rooms.${room.slug}.${field}`;
+        const name = overrides[p('name')] ?? room.name;
+        const specs = decodeSpecs(overrides[p('specs')] ?? encodeSpecs(room.specs));
+        return (
+          <section className={`section${i % 2 === 1 ? ' section--band' : ''}`} id={room.slug} key={room.slug}>
+            <div className="container">
+              <Reveal className={`room-detail${i % 2 === 1 ? ' room-detail--rev' : ''}`}>
+                <div className="room-detail__gallery">
+                  <div className="room-detail__hero">
+                    <EditableImage path={p('hero.image')} fallbackSrc={img(room.hero.id, 1400)} alt={room.hero.alt} rules={HERO_IMAGE_RULES} />
+                  </div>
+                  <div className="room-detail__thumbs">
+                    {room.thumbs.map((t, ti) => (
+                      <EditableImage
+                        key={t.id}
+                        path={p(`thumbs.${ti}.image`)}
+                        fallbackSrc={img(t.id, 500)}
+                        alt={t.alt}
+                        rules={THUMB_IMAGE_RULES}
+                      />
+                    ))}
+                  </div>
                 </div>
-                <div className="room-detail__thumbs">
-                  {room.thumbs.map((t) => (
-                    <img key={t.id} src={img(t.id, 500)} alt={t.alt} loading="lazy" />
-                  ))}
+                <div className="room-detail__body">
+                  <p className="label">
+                    <span className="label__no">( {room.no} )</span> {room.kicker}
+                  </p>
+                  <h2>
+                    <Editable path={p('name')} fallback={room.name} rules={{ label: 'Room name', maxLength: 60 }} />
+                  </h2>
+                  <p className="lede">
+                    <Editable path={p('lede')} fallback={room.lede} multiline rules={{ label: 'Lede', maxLength: 260 }} />
+                  </p>
+                  <ul className="room-detail__specs">
+                    {specs.map(([k, v]) => (
+                      <li key={k}>
+                        <span className="k">{k}</span>
+                        <span className="v">{v}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <EditListButton path={p('specs')} value={overrides[p('specs')] ?? encodeSpecs(room.specs)} label="specs (Key: Value per line)" />
+                  <div className="room-detail__priceline">
+                    <span className="price">
+                      <Editable path={p('price')} fallback={room.price} rules={{ label: 'Price', maxLength: 24 }} />
+                    </span>
+                    <span className="per">
+                      <Editable path={p('per')} fallback={room.per} rules={{ label: 'Price unit', maxLength: 20 }} />
+                    </span>
+                  </div>
+                  <div className="room-detail__cta-row">
+                    <a className="btn btn--solid" href={waBookLink(name)} target="_blank" rel="noopener">
+                      Book this room
+                    </a>
+                    <Link className="btn" to={`/room/${room.slug}`}>
+                      Details &amp; gallery
+                    </Link>
+                    <Link className="btn" to="/contact">
+                      Ask a question
+                    </Link>
+                  </div>
+                  <p className="room-detail__note">
+                    <Editable path={p('note')} fallback={room.note} multiline rules={{ label: 'Note', maxLength: 140 }} />
+                  </p>
                 </div>
-              </div>
-              <div className="room-detail__body">
-                <p className="label">
-                  <span className="label__no">( {room.no} )</span> {room.kicker}
-                </p>
-                <h2>{room.name}</h2>
-                <p className="lede">{room.lede}</p>
-                <ul className="room-detail__specs">
-                  {room.specs.map(([k, v]) => (
-                    <li key={k}>
-                      <span className="k">{k}</span>
-                      <span className="v">{v}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="room-detail__priceline">
-                  <span className="price">{room.price}</span>
-                  <span className="per">{room.per}</span>
-                </div>
-                <div className="room-detail__cta-row">
-                  <a className="btn btn--solid" href={waBookLink(room.name)} target="_blank" rel="noopener">
-                    Book this room
-                  </a>
-                  <Link className="btn" to={`/room/${room.slug}`}>
-                    Details &amp; gallery
-                  </Link>
-                  <Link className="btn" to="/contact">
-                    Ask a question
-                  </Link>
-                </div>
-                <p className="room-detail__note">{room.note}</p>
-              </div>
-            </Reveal>
-          </div>
-        </section>
-      ))}
+              </Reveal>
+            </div>
+          </section>
+        );
+      })}
 
       <section className="section">
         <div className="container">

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { IconPrev, IconNext, IconStar } from './Icons';
 import Reveal from './Reveal';
+import Editable from '../admin/Editable';
 
 const reduceMotion =
   typeof window !== 'undefined' && window.matchMedia
@@ -38,10 +39,18 @@ export default function Testimonials({ items }) {
                 <IconStar key={s} />
               ))}
             </div>
-            <p className="testi__quote">&ldquo;{t.quote}&rdquo;</p>
+            <p className="testi__quote">
+              &ldquo;
+              <Editable path={`testimonials.${i}.quote`} fallback={t.quote} multiline rules={{ label: 'Quote', maxLength: 260 }} />
+              &rdquo;
+            </p>
             <div className="testi__author">
-              <strong>{t.name}</strong>
-              <span>{t.place}</span>
+              <strong>
+                <Editable path={`testimonials.${i}.name`} fallback={t.name} rules={{ label: 'Guest name', maxLength: 40 }} />
+              </strong>
+              <span>
+                <Editable path={`testimonials.${i}.place`} fallback={t.place} rules={{ label: 'Guest location', maxLength: 40 }} />
+              </span>
             </div>
           </div>
         ))}

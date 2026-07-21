@@ -12,6 +12,11 @@ import Testimonials from '../components/Testimonials';
 import Gallery from '../components/Gallery';
 import MobileCta from '../components/MobileCta';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
+import { useContent } from '../admin/ContentContext';
+import Editable from '../admin/Editable';
+
+const ROOM_IMAGE_RULES = { aspect: '3:2', minWidth: 1200, minHeight: 800 };
+const ACTIVITY_IMAGE_RULES = { aspect: '4:3', minWidth: 1000, minHeight: 750 };
 
 const GALLERY_ITEMS = [
   { id: 'photo-1591674585153-ca78d0339b09', alt: 'Borobudur Temple sunrise', thumbW: 900 },
@@ -23,6 +28,7 @@ const GALLERY_ITEMS = [
 
 export default function Home() {
   useDocumentTitle('Borobudur BnB — Boutique Stay Steps From Borobudur Temple, Magelang');
+  const { overrides } = useContent();
   const teaserRooms = rooms.slice(0, 3);
   const teaserActivities = [activities[0], activities[2], activities[4]]; // horse riding, VW tour, rafting
 
@@ -154,15 +160,17 @@ export default function Home() {
               <IndexRow
                 key={r.slug}
                 no={r.no}
-                title={r.name}
+                title={<Editable path={`rooms.${r.slug}.name`} fallback={r.name} rules={{ label: 'Room name', maxLength: 60 }} />}
                 meta={r.listMeta}
-                desc={r.listDesc}
-                price={r.listPrice}
-                pricePer={r.listPricePer}
+                desc={<Editable path={`rooms.${r.slug}.listDesc`} fallback={r.listDesc} multiline rules={{ label: 'Short description', maxLength: 220 }} />}
+                price={<Editable path={`rooms.${r.slug}.listPrice`} fallback={r.listPrice} rules={{ label: 'Price', maxLength: 24 }} />}
+                pricePer={<Editable path={`rooms.${r.slug}.listPricePer`} fallback={r.listPricePer} rules={{ label: 'Price unit', maxLength: 20 }} />}
                 detailHref={`/room/${r.slug}`}
-                bookHref={waBookLink(r.name)}
+                bookHref={waBookLink(overrides[`rooms.${r.slug}.name`] ?? r.name)}
                 image={img(r.hero.id, 1200)}
                 imageAlt={r.hero.alt}
+                editImagePath={`rooms.${r.slug}.hero.image`}
+                imageRules={ROOM_IMAGE_RULES}
               />
             ))}
           </div>
@@ -190,11 +198,14 @@ export default function Home() {
                 to={`/activity/${a.slug}`}
                 media={a.hero}
                 meta={[a.listMeta[0], a.listMeta[1]]}
-                title={a.name}
-                text={a.listDesc}
+                title={<Editable path={`activities.${a.slug}.name`} fallback={a.name} rules={{ label: 'Activity name', maxLength: 60 }} />}
+                text={<Editable path={`activities.${a.slug}.listDesc`} fallback={a.listDesc} multiline rules={{ label: 'Short description', maxLength: 220 }} />}
+                editImagePath={`activities.${a.slug}.hero.image`}
+                imageRules={ACTIVITY_IMAGE_RULES}
                 footer={
                   <span className="tlink">
-                    From {a.listPrice} <span aria-hidden>→</span>
+                    From <Editable path={`activities.${a.slug}.listPrice`} fallback={a.listPrice} rules={{ label: 'Price', maxLength: 24 }} />{' '}
+                    <span aria-hidden>→</span>
                   </span>
                 }
               />

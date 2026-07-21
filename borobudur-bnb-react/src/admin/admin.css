@@ -1,0 +1,255 @@
+/* Admin inline-editor UI — deliberately separate from the site's own
+   design system (style.css). Functional tool styling, not brand styling. */
+
+/* The site's own mobile CTA bar also pins to bottom:0 — hide it while
+   editing so it doesn't stack underneath the admin toolbar. */
+body.admin-edit-mode .mobile-cta {
+  display: none !important;
+}
+
+.admin-editable {
+  position: relative;
+  cursor: pointer;
+  outline: 1.5px dashed rgba(37, 99, 235, 0.55);
+  outline-offset: 3px;
+  border-radius: 3px;
+  transition: outline-color 0.15s ease, background-color 0.15s ease;
+}
+.admin-editable:hover {
+  outline-color: #2563eb;
+  background-color: rgba(37, 99, 235, 0.07);
+}
+.admin-editable__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: #2563eb;
+  color: #fff;
+  font-size: 10px;
+  vertical-align: middle;
+  opacity: 0.85;
+}
+
+.admin-editable-image {
+  position: relative;
+  display: block;
+}
+.admin-editable-image img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.admin-editable-image__btn {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: rgba(17, 24, 39, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  cursor: pointer;
+  z-index: 3;
+  white-space: nowrap;
+}
+.admin-editable-image__btn:hover {
+  background: #2563eb;
+}
+
+.admin-editlist-btn {
+  margin: 10px 0;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.09);
+  border: 1px dashed rgba(37, 99, 235, 0.5);
+  border-radius: 999px;
+  cursor: pointer;
+}
+.admin-editlist-btn:hover {
+  background: rgba(37, 99, 235, 0.16);
+}
+
+/* Toolbar */
+.admin-toolbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 18px;
+  background: #111827;
+  color: #f3f4f6;
+  font: 13px/1.4 system-ui, -apple-system, sans-serif;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.25);
+}
+.admin-toolbar__status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+.admin-toolbar__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.25);
+}
+.admin-toolbar__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-btn {
+  padding: 8px 14px;
+  font: inherit;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.admin-btn--solid {
+  background: #2563eb;
+  color: #fff;
+}
+.admin-btn--solid:hover {
+  background: #1d4ed8;
+}
+.admin-btn--ghost {
+  background: transparent;
+  color: #e5e7eb;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+.admin-btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Edit panel (slide-in drawer) */
+.admin-editpanel {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  font: 14px/1.5 system-ui, -apple-system, sans-serif;
+}
+.admin-editpanel__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.45);
+}
+.admin-editpanel__panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(420px, 100vw);
+  background: #fff;
+  color: #111827;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -12px 0 40px rgba(0, 0, 0, 0.25);
+}
+.admin-editpanel__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 700;
+  font-size: 15px;
+}
+.admin-editpanel__x {
+  background: none;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 4px 8px;
+}
+.admin-editpanel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+.admin-editpanel__fieldlabel {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #374151;
+}
+.admin-editpanel__body input[type='text'],
+.admin-editpanel__body textarea {
+  width: 100%;
+  padding: 10px 12px;
+  font: inherit;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  color: #111827;
+  background: #f9fafb;
+}
+.admin-editpanel__body textarea {
+  resize: vertical;
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+}
+.admin-editpanel__rule {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: #6b7280;
+}
+.admin-editpanel__status {
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: #6b7280;
+}
+.admin-editpanel__status.is-ok {
+  color: #16a34a;
+}
+.admin-editpanel__status.is-warn {
+  color: #d97706;
+}
+.admin-editpanel__preview {
+  margin-top: 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  max-height: 220px;
+}
+.admin-editpanel__preview img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+}
+.admin-editpanel__counter {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #9ca3af;
+  text-align: right;
+}
+.admin-editpanel__counter.is-over {
+  color: #dc2626;
+  font-weight: 700;
+}
+.admin-editpanel__foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 20px;
+  border-top: 1px solid #e5e7eb;
+}

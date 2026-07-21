@@ -3,10 +3,16 @@ import { NavLink } from 'react-router-dom';
 import { useScrollNav } from '../hooks/useScrollNav';
 import { NAV_LINKS, SITE } from '../data/site';
 import { BrandMark, IconClose, IconMenu } from './Icons';
+import { useContent } from '../admin/ContentContext';
+import Editable from '../admin/Editable';
 
 export default function Nav({ solid = false }) {
   const { isScrolled, isHidden } = useScrollNav();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { overrides } = useContent();
+  const phone = overrides['site.phone'] ?? SITE.phone;
+  const email = overrides['site.email'] ?? SITE.email;
+  const phoneHref = `tel:${phone.replace(/[^\d+]/g, '')}`;
 
   const navClass = [
     'nav',
@@ -26,8 +32,8 @@ export default function Nav({ solid = false }) {
               <BrandMark />
             </span>
             <span>
-              <strong>{SITE.name}</strong>
-              <em>{SITE.tagline}</em>
+              <Editable as="strong" path="site.name" fallback={SITE.name} rules={{ label: 'Site name', maxLength: 40 }} />
+              <Editable as="em" path="site.tagline" fallback={SITE.tagline} rules={{ label: 'Tagline', maxLength: 40 }} />
             </span>
           </NavLink>
           <nav className="nav__links">
@@ -38,8 +44,8 @@ export default function Nav({ solid = false }) {
             ))}
           </nav>
           <div className="nav__actions">
-            <a className="nav__phone" href={SITE.phoneHref}>
-              {SITE.phone}
+            <a className="nav__phone" href={phoneHref}>
+              <Editable path="site.phone" fallback={SITE.phone} rules={{ label: 'Phone', maxLength: 24 }} />
             </a>
             <NavLink to="/room" className="btn">
               Book
@@ -71,14 +77,17 @@ export default function Nav({ solid = false }) {
             ))}
           </nav>
           <div className="drawer__meta">
-            {SITE.addressShort.split(', ').slice(0, 2).join(', ')}
+            <Editable
+              as="span"
+              path="site.addressShort"
+              fallback={SITE.addressShort}
+              rules={{ label: 'Address (short)', maxLength: 120 }}
+            />
             <br />
-            {SITE.addressShort.split(', ').slice(2).join(', ')}
             <br />
+            <a href={phoneHref}>{phone}</a>
             <br />
-            <a href={SITE.phoneHref}>{SITE.phone}</a>
-            <br />
-            <a href={`mailto:${SITE.email}`}>{SITE.email}</a>
+            <a href={`mailto:${email}`}>{email}</a>
           </div>
         </div>
       </div>

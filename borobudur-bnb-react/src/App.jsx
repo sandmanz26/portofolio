@@ -7,6 +7,7 @@ import RoomDetail from './pages/RoomDetail';
 import ActivityList from './pages/ActivityList';
 import ActivityDetail from './pages/ActivityDetail';
 import Contact from './pages/Contact';
+import Admin from './pages/Admin';
 import NotFound from './pages/NotFound';
 
 export default function App() {
@@ -20,6 +21,7 @@ export default function App() {
         <Route path="/activity" element={<ActivityList />} />
         <Route path="/activity/:slug" element={<ActivityDetail />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

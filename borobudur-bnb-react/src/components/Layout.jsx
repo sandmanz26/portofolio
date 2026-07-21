@@ -4,6 +4,8 @@ import Nav from './Nav';
 import Footer from './Footer';
 import FloatStack from './FloatStack';
 import Lightbox from './Lightbox';
+import EditToolbar from '../admin/EditToolbar';
+import EditPanel from '../admin/EditPanel';
 
 // Pages whose hero starts on a plain paper background (no dark image
 // behind the nav) use the solid nav variant from the very first frame.
@@ -29,6 +31,8 @@ export default function Layout() {
       <Footer />
       <FloatStack />
       <Lightbox />
+      <EditToolbar />
+      <EditPanel />
     </>
   );
 }

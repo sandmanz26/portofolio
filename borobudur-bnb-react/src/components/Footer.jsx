@@ -4,9 +4,19 @@ import { rooms } from '../data/rooms';
 import { waLink } from '../utils/whatsapp';
 import { IconFacebook, IconInstagram, IconWhatsApp } from './Icons';
 import Reveal from './Reveal';
+import { useContent } from '../admin/ContentContext';
+import Editable from '../admin/Editable';
+import EditListButton from '../admin/EditListButton';
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const { overrides } = useContent();
+  const instagram = overrides['site.instagram'] || SITE.instagram;
+  const facebook = overrides['site.facebook'] || SITE.facebook;
+  const phone = overrides['site.phone'] ?? SITE.phone;
+  const email = overrides['site.email'] ?? SITE.email;
+  const addressShort = overrides['site.addressShort'] ?? SITE.addressShort;
+  const phoneHref = `tel:${phone.replace(/[^\d+]/g, '')}`;
   return (
     <footer className="footer">
       <div className="container">
@@ -20,15 +30,19 @@ export default function Footer() {
               travelers since 2016.
             </p>
             <div className="footer__social">
-              <a href={SITE.instagram} target="_blank" rel="noopener" aria-label="Instagram">
+              <a href={instagram} target="_blank" rel="noopener" aria-label="Instagram">
                 <IconInstagram />
               </a>
-              <a href={SITE.facebook} target="_blank" rel="noopener" aria-label="Facebook">
+              <a href={facebook} target="_blank" rel="noopener" aria-label="Facebook">
                 <IconFacebook />
               </a>
               <a href={waLink('Halo Borobudur BnB')} target="_blank" rel="noopener" aria-label="WhatsApp">
                 <IconWhatsApp />
               </a>
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 10 }}>
+              <EditListButton path="site.instagram" value={instagram} label="Instagram URL" type="text" />
+              <EditListButton path="site.facebook" value={facebook} label="Facebook URL" type="text" />
             </div>
           </div>
           <div className="footer__col">
@@ -54,14 +68,28 @@ export default function Footer() {
           <div className="footer__col">
             <h4>Contact</h4>
             <ul>
-              <li><address>{SITE.addressShort}</address></li>
-              <li><a href={SITE.phoneHref}>{SITE.phone}</a></li>
-              <li><a href={`mailto:${SITE.email}`}>{SITE.email}</a></li>
+              <li>
+                <address>
+                  <Editable path="site.addressShort" fallback={addressShort} rules={{ label: 'Address (short)', maxLength: 120 }} />
+                </address>
+              </li>
+              <li>
+                <a href={phoneHref}>
+                  <Editable path="site.phone" fallback={phone} rules={{ label: 'Phone', maxLength: 24 }} />
+                </a>
+              </li>
+              <li>
+                <a href={`mailto:${email}`}>
+                  <Editable path="site.email" fallback={email} rules={{ label: 'Email', maxLength: 60 }} />
+                </a>
+              </li>
             </ul>
           </div>
         </div>
         <div className="footer__bottom">
-          <span>© {year} {SITE.name} — All rights reserved</span>
+          <span>
+            © {year} <Editable path="site.name" fallback={SITE.name} rules={{ label: 'Site name', maxLength: 40 }} /> — All rights reserved
+          </span>
           <span>Slow mornings in Magelang</span>
         </div>
       </div>

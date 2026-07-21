@@ -10,9 +10,15 @@ import { waBookLink } from '../utils/whatsapp';
 import MobileCta from '../components/MobileCta';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import { IconArrow } from '../components/Icons';
+import { useContent } from '../admin/ContentContext';
+import Editable from '../admin/Editable';
+
+const ACTIVITY_IMAGE_RULES = { aspect: '4:3', minWidth: 1200, minHeight: 900 };
+const WORKSHOP_IMAGE_RULES = { aspect: '1:1', minWidth: 1000, minHeight: 1000 };
 
 export default function ActivityList() {
   useDocumentTitle('Activities — Borobudur BnB, Magelang');
+  const { overrides } = useContent();
 
   return (
     <>
@@ -61,15 +67,17 @@ export default function ActivityList() {
               <IndexRow
                 key={a.slug}
                 no={a.no}
-                title={a.name}
+                title={<Editable path={`activities.${a.slug}.name`} fallback={a.name} rules={{ label: 'Activity name', maxLength: 60 }} />}
                 meta={a.listMeta}
-                desc={a.listDesc}
-                price={a.listPrice}
-                pricePer={a.listPricePer}
+                desc={<Editable path={`activities.${a.slug}.listDesc`} fallback={a.listDesc} multiline rules={{ label: 'Short description', maxLength: 220 }} />}
+                price={<Editable path={`activities.${a.slug}.listPrice`} fallback={a.listPrice} rules={{ label: 'Price', maxLength: 24 }} />}
+                pricePer={<Editable path={`activities.${a.slug}.listPricePer`} fallback={a.listPricePer} rules={{ label: 'Price unit', maxLength: 20 }} />}
                 detailHref={`/activity/${a.slug}`}
-                bookHref={waBookLink(a.name)}
+                bookHref={waBookLink(overrides[`activities.${a.slug}.name`] ?? a.name)}
                 image={img(a.hero.id, 1200)}
                 imageAlt={a.hero.alt}
+                editImagePath={`activities.${a.slug}.hero.image`}
+                imageRules={ACTIVITY_IMAGE_RULES}
               />
             ))}
           </div>
@@ -92,25 +100,30 @@ export default function ActivityList() {
             </p>
           </Reveal>
           <Reveal group className="exp-grid exp-grid--quad">
-            {workshops.map((w) => (
-              <ExpCard
-                key={w.id}
-                media={w.media}
-                meta={w.meta}
-                title={w.title}
-                text={w.text}
-                footer={
-                  <a
-                    className="tlink"
-                    href={waLink(`Halo Borobudur BnB, saya ingin tanya kelas ${w.title}.`)}
-                    target="_blank"
-                    rel="noopener"
-                  >
-                    Ask to book <IconArrow />
-                  </a>
-                }
-              />
-            ))}
+            {workshops.map((w) => {
+              const title = overrides[`workshops.${w.id}.title`] ?? w.title;
+              return (
+                <ExpCard
+                  key={w.id}
+                  media={w.media}
+                  meta={<Editable path={`workshops.${w.id}.meta`} fallback={w.meta} rules={{ label: 'Meta (duration)', maxLength: 40 }} />}
+                  title={<Editable path={`workshops.${w.id}.title`} fallback={w.title} rules={{ label: 'Title', maxLength: 50 }} />}
+                  text={<Editable path={`workshops.${w.id}.text`} fallback={w.text} multiline rules={{ label: 'Description', maxLength: 220 }} />}
+                  editImagePath={`workshops.${w.id}.image`}
+                  imageRules={WORKSHOP_IMAGE_RULES}
+                  footer={
+                    <a
+                      className="tlink"
+                      href={waLink(`Halo Borobudur BnB, saya ingin tanya kelas ${title}.`)}
+                      target="_blank"
+                      rel="noopener"
+                    >
+                      Ask to book <IconArrow />
+                    </a>
+                  }
+                />
+              );
+            })}
           </Reveal>
         </div>
       </section>
