@@ -1,11 +1,16 @@
 /* ============================================================
    BHF — Product data layer
 
-   All product access goes through the async functions at the
-   bottom. When the admin panel + Supabase land, replace their
-   bodies with Supabase queries (e.g. supabase.from("products"))
-   and no component needs to change.
+   All product access goes through the functions at the bottom
+   (fetch/create/update/delete). Right now they read and write a
+   browser localStorage copy of SEED_PRODUCTS so the admin panel
+   works before a backend exists. When Supabase lands, replace the
+   bodies of these functions with supabase.from("products") calls
+   returning the same shape — no page or admin component needs to
+   change, since none of them touch storage directly.
    ============================================================ */
+
+import { uniqueSlug } from "../utils/slug.js";
 
 function unsplash(id, width = 1200) {
   return `https://images.unsplash.com/photo-${id}?q=80&w=${width}&auto=format&fit=crop`;
@@ -13,13 +18,13 @@ function unsplash(id, width = 1200) {
 
 export const CATEGORIES = ["All", "Seating", "Tables", "Bedroom", "Storage"];
 
-const PRODUCTS = [
+const SEED_PRODUCTS = [
   {
     id: "arjuna-lounge-chair",
     name: "Arjuna Lounge Chair",
     category: "Seating",
     price: 4850000,
-    image: unsplash("1598300042247-d088f8ab3a91"),
+    images: [unsplash("1598300042247-d088f8ab3a91")],
     tag: "Best Seller",
     featured: true,
     short: "An upholstered lounge chair on a solid teak frame with a light silhouette.",
@@ -35,7 +40,7 @@ const PRODUCTS = [
     name: "Srikandi Dining Chair",
     category: "Seating",
     price: 1950000,
-    image: unsplash("1592078615290-033ee584e267"),
+    images: [unsplash("1592078615290-033ee584e267")],
     tag: null,
     featured: false,
     short: "A slatted-back dining chair — light in the hand, solid underfoot.",
@@ -51,7 +56,7 @@ const PRODUCTS = [
     name: "Bima Three-Seat Sofa",
     category: "Seating",
     price: 12500000,
-    image: unsplash("1540574163026-643ea20ade25"),
+    images: [unsplash("1540574163026-643ea20ade25")],
     tag: "Featured",
     featured: true,
     short: "A three-seater with an exposed teak base and loose cushions.",
@@ -67,7 +72,7 @@ const PRODUCTS = [
     name: "Shinta Coffee Table",
     category: "Tables",
     price: 3250000,
-    image: unsplash("1519710164239-da123dc03ef4"),
+    images: [unsplash("1519710164239-da123dc03ef4")],
     tag: null,
     featured: true,
     short: "A round coffee table cut from a single teak board.",
@@ -83,7 +88,7 @@ const PRODUCTS = [
     name: "Rama Dining Table",
     category: "Tables",
     price: 8900000,
-    image: unsplash("1519643381401-22c77e60520e"),
+    images: [unsplash("1519643381401-22c77e60520e")],
     tag: "Best Seller",
     featured: true,
     short: "A six-seat dining table with a 4 cm solid teak top.",
@@ -99,7 +104,7 @@ const PRODUCTS = [
     name: "Nakula Console Table",
     category: "Storage",
     price: 4200000,
-    image: unsplash("1597072689227-8882273e8f6a"),
+    images: [unsplash("1597072689227-8882273e8f6a")],
     tag: null,
     featured: false,
     short: "A slim two-drawer console for hallways and entryways.",
@@ -115,7 +120,7 @@ const PRODUCTS = [
     name: "Dewi Bed Frame",
     category: "Bedroom",
     price: 9800000,
-    image: unsplash("1616594039964-ae9021a400a0"),
+    images: [unsplash("1616594039964-ae9021a400a0")],
     tag: "Featured",
     featured: true,
     short: "A tall-headboard bed with calm lines and a low profile.",
@@ -131,7 +136,7 @@ const PRODUCTS = [
     name: "Sadewa Nightstand",
     category: "Bedroom",
     price: 2150000,
-    image: unsplash("1595526114035-0d45ed16cfbf"),
+    images: [unsplash("1595526114035-0d45ed16cfbf")],
     tag: null,
     featured: false,
     short: "A two-drawer nightstand on slender tapered legs.",
@@ -147,7 +152,7 @@ const PRODUCTS = [
     name: "Gatot Wardrobe",
     category: "Bedroom",
     price: 14500000,
-    image: unsplash("1558997519-83ea9252edf8"),
+    images: [unsplash("1558997519-83ea9252edf8")],
     tag: null,
     featured: false,
     short: "A two-door wardrobe with a configurable interior.",
@@ -163,7 +168,7 @@ const PRODUCTS = [
     name: "Kresna Bookshelf",
     category: "Storage",
     price: 5600000,
-    image: unsplash("1594620302200-9a762244a156"),
+    images: [unsplash("1594620302200-9a762244a156")],
     tag: "New",
     featured: false,
     short: "An open four-tier shelf with architectural proportions.",
@@ -179,7 +184,7 @@ const PRODUCTS = [
     name: "Laksmana Sideboard",
     category: "Storage",
     price: 7800000,
-    image: unsplash("1616046229478-9901c5536a45"),
+    images: [unsplash("1616046229478-9901c5536a45")],
     tag: "New",
     featured: true,
     short: "A long, low three-door sideboard with quiet horizontal lines.",
@@ -195,7 +200,7 @@ const PRODUCTS = [
     name: "Drupadi Stool",
     category: "Seating",
     price: 1450000,
-    image: unsplash("1503602642458-232111445657"),
+    images: [unsplash("1503602642458-232111445657")],
     tag: null,
     featured: false,
     short: "A solid-wood stool that works anywhere in the house.",
@@ -209,30 +214,139 @@ const PRODUCTS = [
 ];
 
 export function formatPrice(value) {
-  return "Rp " + value.toLocaleString("id-ID");
+  return "Rp " + Number(value || 0).toLocaleString("id-ID");
 }
 
-/* ---- Async data access (swap these bodies for Supabase later) ---- */
+export function coverImage(product) {
+  return product?.images?.[0] || null;
+}
+
+/* ---- localStorage-backed store (temporary, pre-Supabase) ---- */
+
+const STORAGE_KEY = "bhf_products_v1";
+let store = null;
+let persistenceOk = true;
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function readFromStorage() {
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Writes through to localStorage; returns an Error on failure instead of throwing. */
+function persist(products) {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    persistenceOk = true;
+    return null;
+  } catch (err) {
+    persistenceOk = false;
+    return err;
+  }
+}
+
+function getStore() {
+  if (store) return store;
+  const saved = typeof window !== "undefined" ? readFromStorage() : null;
+  store = saved ?? clone(SEED_PRODUCTS);
+  return store;
+}
+
+/** Updates the in-memory store immediately, then best-effort persists it. */
+function setStore(next) {
+  store = next;
+  return typeof window !== "undefined" ? persist(store) : null;
+}
+
+/** False if localStorage is unavailable or full — edits still work for this session only. */
+export function isPersistenceAvailable() {
+  return persistenceOk;
+}
+
+function persistErrorMessage(err) {
+  if (err?.name === "QuotaExceededError") {
+    return "Storage is full — remove a photo or two, then try again. (Your change is kept for this session only.)";
+  }
+  return "Couldn't save changes in this browser. (Your change is kept for this session only.)";
+}
+
+/* ---- Read access ---- */
 
 export async function fetchProducts(category = "All") {
-  return category === "All"
-    ? PRODUCTS
-    : PRODUCTS.filter((p) => p.category === category);
+  const products = getStore();
+  return category === "All" ? products.slice() : products.filter((p) => p.category === category);
 }
 
 export async function fetchProduct(id) {
-  return PRODUCTS.find((p) => p.id === id) ?? null;
+  return getStore().find((p) => p.id === id) ?? null;
 }
 
 export async function fetchFeaturedProducts(limit = 6) {
-  return PRODUCTS.filter((p) => p.featured).slice(0, limit);
+  return getStore()
+    .filter((p) => p.featured)
+    .slice(0, limit);
 }
 
 export async function fetchRelatedProducts(product, limit = 3) {
-  return PRODUCTS.filter((p) => p.id !== product.id)
-    .sort(
-      (a, b) =>
-        (b.category === product.category) - (a.category === product.category)
-    )
+  return getStore()
+    .filter((p) => p.id !== product.id)
+    .sort((a, b) => (b.category === product.category) - (a.category === product.category))
     .slice(0, limit);
+}
+
+/* ---- Write access (admin panel) ---- */
+
+export async function createProduct(overrides = {}) {
+  const products = getStore();
+  const name = (overrides.name || "New Product").trim() || "New Product";
+  const product = {
+    id: uniqueSlug(name, products),
+    name,
+    category: overrides.category || "Seating",
+    price: overrides.price ?? 0,
+    images: overrides.images || [],
+    tag: overrides.tag ?? null,
+    featured: overrides.featured ?? false,
+    short: overrides.short || "",
+    description: overrides.description || "",
+    dimensions: overrides.dimensions || "",
+    material: overrides.material || "",
+    finish: overrides.finish || "",
+    leadTime: overrides.leadTime || "",
+  };
+  const err = setStore([product, ...products]);
+  if (err) throw new Error(persistErrorMessage(err));
+  return product;
+}
+
+export async function updateProduct(id, patch) {
+  const products = getStore();
+  const idx = products.findIndex((p) => p.id === id);
+  if (idx === -1) throw new Error("Product not found: " + id);
+  const next = products.slice();
+  next[idx] = { ...next[idx], ...patch };
+  const err = setStore(next);
+  if (err) throw new Error(persistErrorMessage(err));
+  return next[idx];
+}
+
+export async function deleteProduct(id) {
+  const next = getStore().filter((p) => p.id !== id);
+  const err = setStore(next);
+  if (err) throw new Error(persistErrorMessage(err));
+}
+
+/** Restores the original demo catalog, discarding all admin edits. */
+export async function resetProducts() {
+  const next = clone(SEED_PRODUCTS);
+  const err = setStore(next);
+  if (err) throw new Error(persistErrorMessage(err));
+  return next.slice();
 }

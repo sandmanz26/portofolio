@@ -13,12 +13,14 @@ export default function ProductDetail() {
   const { id } = useParams();
   const [product, setProduct] = useState(undefined); // undefined = loading, null = not found
   const [related, setRelated] = useState([]);
+  const [activeImage, setActiveImage] = useState(0);
 
   useEffect(() => {
     let active = true;
     fetchProduct(id).then((p) => {
       if (!active) return;
       setProduct(p);
+      setActiveImage(0);
       if (p) {
         document.title = `${p.name} — ${SITE.name}`;
         fetchRelatedProducts(p).then((r) => active && setRelated(r));
@@ -57,13 +59,37 @@ export default function ProductDetail() {
     product.price
   )}). Could you tell me about its availability?`;
 
+  const images = product.images || [];
+  const mainImage = images[activeImage] || images[0];
+
   return (
     <>
       <section className="section" style={{ paddingTop: "clamp(7rem,16vh,10rem)" }}>
         <div className="container">
           <div className="product-detail">
             <div className="product-detail__media reveal">
-              <img src={product.image} alt={product.name} />
+              <div className="product-detail__media-frame">
+                {mainImage ? (
+                  <img src={mainImage} alt={product.name} />
+                ) : (
+                  <div className="product-detail__media-empty">No photo yet</div>
+                )}
+              </div>
+              {images.length > 1 && (
+                <div className="product-detail__thumbs">
+                  {images.map((src, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      className={"product-detail__thumb" + (i === activeImage ? " is-active" : "")}
+                      onClick={() => setActiveImage(i)}
+                      aria-label={`Show photo ${i + 1}`}
+                    >
+                      <img src={src} alt="" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             <div className="reveal">
               <nav className="breadcrumb" aria-label="Breadcrumb">

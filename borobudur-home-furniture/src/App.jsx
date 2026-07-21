@@ -5,6 +5,9 @@ import Catalog from "./pages/Catalog.jsx";
 import ProductDetail from "./pages/ProductDetail.jsx";
 import Contact from "./pages/Contact.jsx";
 import NotFound from "./pages/NotFound.jsx";
+import AdminLayout from "./pages/admin/AdminLayout.jsx";
+import AdminProducts from "./pages/admin/AdminProducts.jsx";
+import AdminProductEditor from "./pages/admin/AdminProductEditor.jsx";
 
 export default function App() {
   return (
@@ -15,6 +18,11 @@ export default function App() {
         <Route path="product/:id" element={<ProductDetail />} />
         <Route path="contact" element={<Contact />} />
         <Route path="*" element={<NotFound />} />
+      </Route>
+
+      <Route path="admin" element={<AdminLayout />}>
+        <Route index element={<AdminProducts />} />
+        <Route path="products/:id" element={<AdminProductEditor />} />
       </Route>
     </Routes>
   );
