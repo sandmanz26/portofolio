@@ -27,13 +27,9 @@ export default function Nav({ solid = false }) {
     <>
       <header className={navClass} id="site-nav">
         <div className="container">
-          <NavLink to="/" className="brand">
+          <NavLink to="/" className="brand" aria-label={SITE.name}>
             <span className="brand__mark">
               <BrandMark />
-            </span>
-            <span>
-              <Editable as="strong" path="site.name" fallback={SITE.name} rules={{ label: 'Site name', maxLength: 40 }} />
-              <Editable as="em" path="site.tagline" fallback={SITE.tagline} rules={{ label: 'Tagline', maxLength: 40 }} />
             </span>
           </NavLink>
           <nav className="nav__links">
