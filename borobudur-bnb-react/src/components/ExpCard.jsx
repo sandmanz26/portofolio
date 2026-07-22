@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { img } from '../utils/img';
 import EditableImage from '../admin/EditableImage';
 
 // Flexible experience/workshop card. Pass `to` for an internal link (whole
@@ -12,9 +11,9 @@ export default function ExpCard({ to, media, meta, title, text, footer, editImag
     <Tag className="exp-card" {...tagProps}>
       <div className="exp-card__media">
         {editImagePath ? (
-          <EditableImage path={editImagePath} fallbackSrc={img(media.id, 1000)} alt={media.alt} rules={imageRules} loading="lazy" />
+          <EditableImage path={editImagePath} fallbackSrc={media.image} alt={media.alt} rules={imageRules} loading="lazy" />
         ) : (
-          <img src={img(media.id, 1000)} alt={media.alt} loading="lazy" />
+          <img src={media.image} alt={media.alt} loading="lazy" />
         )}
       </div>
       <div className="exp-card__meta">

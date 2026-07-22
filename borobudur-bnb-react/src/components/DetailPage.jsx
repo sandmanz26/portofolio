@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { img } from '../utils/img';
 import { waBookLink } from '../utils/whatsapp';
 import { useLightbox } from '../hooks/useLightbox.jsx';
 import Reveal from './Reveal';
@@ -22,10 +21,8 @@ export default function DetailPage({ item, parentLabel, parentHref, prev, next, 
 
   const p = (field) => `${pathPrefix}.${field}`;
   const name = overrides[p('name')] ?? item.name;
-  const heroSrc = overrides[p('hero.image')] || img(item.hero.id, 1400);
-  const heroFullSrc = overrides[p('hero.image')] || img(item.hero.id, 1800);
-  const thumbSrcs = item.thumbs.map((t, i) => overrides[p(`thumbs.${i}.image`)] || img(t.id, 700));
-  const thumbFullSrcs = item.thumbs.map((t, i) => overrides[p(`thumbs.${i}.image`)] || img(t.id, 1800));
+  const heroSrc = overrides[p('hero.image')] || item.hero.image;
+  const thumbSrcs = item.thumbs.map((t, i) => overrides[p(`thumbs.${i}.image`)] || t.image);
 
   const specs = decodeSpecs(overrides[p('specs')] ?? encodeSpecs(item.specs));
   const paragraphs = decodeParagraphs(overrides[p('paragraphs')] ?? encodeParagraphs(item.paragraphs));
@@ -34,8 +31,8 @@ export default function DetailPage({ item, parentLabel, parentHref, prev, next, 
   const bookHref = waBookLink(name);
 
   const galleryImages = [
-    { src: heroFullSrc, alt: item.hero.alt },
-    ...item.thumbs.map((t, i) => ({ src: thumbFullSrcs[i], alt: t.alt })),
+    { src: heroSrc, alt: item.hero.alt },
+    ...item.thumbs.map((t, i) => ({ src: thumbSrcs[i], alt: t.alt })),
   ];
 
   return (
@@ -70,7 +67,7 @@ export default function DetailPage({ item, parentLabel, parentHref, prev, next, 
               </div>
               <div className={`detail-thumbs${item.thumbs.length === 3 ? ' detail-thumbs--tri' : ''}`}>
                 {item.thumbs.map((t, i) => (
-                  <div key={t.id} onClick={() => open(galleryImages, i + 1)}>
+                  <div key={t.image || i} onClick={() => open(galleryImages, i + 1)}>
                     <EditableImage
                       path={p(`thumbs.${i}.image`)}
                       fallbackSrc={thumbSrcs[i]}

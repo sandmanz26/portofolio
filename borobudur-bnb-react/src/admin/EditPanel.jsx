@@ -1,17 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useContent } from './ContentContext';
 import { probeImage } from './imageRules';
 
 export default function EditPanel() {
-  const { activeEditor, closeEditor, setOverride, resetPath } = useContent();
+  const { activeEditor, closeEditor, setOverride, uploadImage } = useContent();
   const [draft, setDraft] = useState('');
   const [imgStatus, setImgStatus] = useState(null);
   const [checking, setChecking] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const fileRef = useRef(null);
 
   useEffect(() => {
     if (activeEditor) {
       setDraft(activeEditor.value ?? '');
       setImgStatus(null);
+      setSaveError('');
       if (activeEditor.type === 'image' && activeEditor.value) {
         checkImage(activeEditor.value, activeEditor.rules);
       }
@@ -34,22 +39,57 @@ export default function EditPanel() {
     });
   }
 
+  function checkImageFile(file, imgRules) {
+    return new Promise((resolve) => {
+      const objectUrl = URL.createObjectURL(file);
+      probeImage(objectUrl, imgRules).then((res) => {
+        URL.revokeObjectURL(objectUrl);
+        resolve(res);
+      });
+    });
+  }
+
+  async function handleFileChange(e) {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setSaveError('');
+    const result = await checkImageFile(file, rules);
+    setImgStatus(result);
+    if (!result.ok && !window.confirm(`Gambar ini belum memenuhi aturan ukuran:\n${result.message}\n\nTetap upload?`)) {
+      return;
+    }
+    setUploading(true);
+    try {
+      const url = await uploadImage(file);
+      setDraft(url);
+      checkImage(url, rules);
+    } catch (err) {
+      setSaveError(err.message || 'Upload gagal.');
+    } finally {
+      setUploading(false);
+    }
+  }
+
   const overLimit = rules.maxLength && draft.length > rules.maxLength;
 
-  function handleSave() {
+  async function handleSave() {
     if (type === 'image' && draft && imgStatus && !imgStatus.ok) {
       if (!window.confirm(`Gambar ini belum memenuhi aturan ukuran:\n${imgStatus.message}\n\nTetap simpan?`)) return;
     }
     if (overLimit) {
       if (!window.confirm(`Teks melebihi batas ${rules.maxLength} karakter. Tetap simpan?`)) return;
     }
-    setOverride(path, draft);
-    closeEditor();
-  }
-
-  function handleReset() {
-    resetPath(path);
-    closeEditor();
+    setSaving(true);
+    setSaveError('');
+    try {
+      await setOverride(path, draft);
+      closeEditor();
+    } catch (err) {
+      setSaveError(err.message || 'Gagal menyimpan ke database.');
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -75,6 +115,17 @@ export default function EditPanel() {
                   checkImage(e.target.value, rules);
                 }}
               />
+              <div style={{ margin: '10px 0' }}>
+                <button
+                  type="button"
+                  className="admin-btn admin-btn--ghost"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                >
+                  {uploading ? 'Mengunggah…' : 'atau upload file dari perangkat'}
+                </button>
+                <input ref={fileRef} type="file" accept="image/*" hidden onChange={handleFileChange} />
+              </div>
               {(rules.aspect || rules.minWidth) && (
                 <p className="admin-editpanel__rule">
                   Aturan ukuran: {rules.aspect ? `rasio ${rules.aspect}` : ''}
@@ -117,17 +168,15 @@ export default function EditPanel() {
             </p>
           )}
           {rules.required && !draft && <p className="admin-editpanel__status is-warn">Field ini wajib diisi.</p>}
+          {saveError && <p className="admin-editpanel__status is-warn">{saveError}</p>}
         </div>
         <div className="admin-editpanel__foot">
-          <button type="button" className="admin-btn admin-btn--ghost" onClick={handleReset}>
-            Reset ke default
-          </button>
-          <div style={{ flex: 1 }} />
-          <button type="button" className="admin-btn admin-btn--ghost" onClick={closeEditor}>
+          <button type="button" className="admin-btn admin-btn--ghost" onClick={closeEditor} disabled={saving}>
             Batal
           </button>
-          <button type="button" className="admin-btn admin-btn--solid" onClick={handleSave}>
-            Simpan
+          <div style={{ flex: 1 }} />
+          <button type="button" className="admin-btn admin-btn--solid" onClick={handleSave} disabled={saving || uploading}>
+            {saving ? 'Menyimpan…' : 'Simpan ke database'}
           </button>
         </div>
       </div>

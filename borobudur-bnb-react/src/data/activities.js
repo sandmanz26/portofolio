@@ -1,4 +1,9 @@
-export const activities = [
+import { img } from '../utils/img';
+
+// Raw content keeps the original Unsplash id + alt shape; the exported
+// `activities` maps each into { image, alt } (a plain URL) so it matches
+// the shape Supabase rows use once content is migrated there.
+const ACTIVITIES_RAW = [
   {
     slug: 'horse-riding',
     no: '01',
@@ -196,6 +201,12 @@ export const activities = [
     listPricePer: 'person',
   },
 ];
+
+export const activities = ACTIVITIES_RAW.map((a) => ({
+  ...a,
+  hero: { image: img(a.hero.id, 1800), alt: a.hero.alt },
+  thumbs: a.thumbs.map((t) => ({ image: img(t.id, 1200), alt: t.alt })),
+}));
 
 export function findActivity(slug) {
   return activities.find((a) => a.slug === slug);

@@ -1,5 +1,4 @@
 import { useParams } from 'react-router-dom';
-import { rooms, findRoom } from '../data/rooms';
 import DetailPage from '../components/DetailPage';
 import MobileCta from '../components/MobileCta';
 import { waBookLink, waLink } from '../utils/whatsapp';
@@ -9,8 +8,9 @@ import NotFound from './NotFound';
 
 export default function RoomDetail() {
   const { slug } = useParams();
-  const room = findRoom(slug);
-  const { overrides } = useContent();
+  const { overrides, rows } = useContent();
+  const { rooms } = rows;
+  const room = rooms.find((r) => r.slug === slug);
   useDocumentTitle(room ? `${room.name} — Rooms at Borobudur BnB` : 'Room not found — Borobudur BnB');
   if (!room) return <NotFound />;
 

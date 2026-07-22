@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { facilities } from '../data/facilities';
 import { waLink } from '../utils/whatsapp';
 import { img } from '../utils/img';
 import PageHero from '../components/PageHero';
@@ -9,6 +8,7 @@ import Faq from '../components/Faq';
 import MobileCta from '../components/MobileCta';
 import { useDocumentTitle } from '../hooks/useDocumentTitle';
 import Editable from '../admin/Editable';
+import { useContent } from '../admin/ContentContext';
 
 const MEETING_ROWS = [
   ['Full board meeting', 'Rp 450.000/pax — room, 3 meals, 2× coffee break, projector, sound, Wi-Fi. Min. 10 guests.'],
@@ -36,6 +36,8 @@ const FAQ_ITEMS = [
 
 export default function Facility() {
   useDocumentTitle('Facilities — Borobudur BnB, Magelang');
+  const { rows } = useContent();
+  const { facilities } = rows;
 
   return (
     <>

@@ -1,5 +1,4 @@
 import { useParams } from 'react-router-dom';
-import { activities, findActivity } from '../data/activities';
 import DetailPage from '../components/DetailPage';
 import MobileCta from '../components/MobileCta';
 import { waBookLink, waLink } from '../utils/whatsapp';
@@ -9,8 +8,9 @@ import NotFound from './NotFound';
 
 export default function ActivityDetail() {
   const { slug } = useParams();
-  const activity = findActivity(slug);
-  const { overrides } = useContent();
+  const { overrides, rows } = useContent();
+  const { activities } = rows;
+  const activity = activities.find((a) => a.slug === slug);
   useDocumentTitle(activity ? `${activity.name} — Activities at Borobudur BnB` : 'Activity not found — Borobudur BnB');
   if (!activity) return <NotFound />;
 

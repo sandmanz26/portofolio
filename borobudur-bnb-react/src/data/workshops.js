@@ -1,4 +1,9 @@
-export const workshops = [
+import { img } from '../utils/img';
+
+// Raw content keeps the original Unsplash id + alt shape; the exported
+// `workshops` maps each into { image, alt } (a plain URL) so it matches
+// the shape Supabase rows use once content is migrated there.
+const WORKSHOPS_RAW = [
   {
     id: 'batik',
     media: { id: 'photo-1721361467569-f8edbf851f44', alt: 'Artisan hand-drawing wax batik onto cloth' },
@@ -28,3 +33,8 @@ export const workshops = [
     text: "Try your hand at gong, kenong and gambang with a local gamelan group, and learn the basics of Java's centuries-old orchestral tradition.",
   },
 ];
+
+export const workshops = WORKSHOPS_RAW.map((w) => ({
+  ...w,
+  media: { image: img(w.media.id, 1200), alt: w.media.alt },
+}));

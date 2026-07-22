@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { SITE } from '../data/site';
-import { rooms } from '../data/rooms';
 import { waLink } from '../utils/whatsapp';
 import { IconFacebook, IconInstagram, IconWhatsApp } from './Icons';
 import Reveal from './Reveal';
@@ -10,7 +9,8 @@ import EditListButton from '../admin/EditListButton';
 
 export default function Footer() {
   const year = new Date().getFullYear();
-  const { overrides } = useContent();
+  const { overrides, rows } = useContent();
+  const { rooms } = rows;
   const instagram = overrides['site.instagram'] || SITE.instagram;
   const facebook = overrides['site.facebook'] || SITE.facebook;
   const phone = overrides['site.phone'] ?? SITE.phone;

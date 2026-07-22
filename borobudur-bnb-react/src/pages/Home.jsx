@@ -1,7 +1,4 @@
 import { Link } from 'react-router-dom';
-import { rooms } from '../data/rooms';
-import { activities } from '../data/activities';
-import { testimonials } from '../data/testimonials';
 import { img } from '../utils/img';
 import { waBookLink, waLink } from '../utils/whatsapp';
 import IndexRow from '../components/IndexRow';
@@ -28,9 +25,10 @@ const GALLERY_ITEMS = [
 
 export default function Home() {
   useDocumentTitle('Borobudur BnB — Boutique Stay Steps From Borobudur Temple, Magelang');
-  const { overrides } = useContent();
+  const { overrides, rows } = useContent();
+  const { rooms, activities, testimonials } = rows;
   const teaserRooms = rooms.slice(0, 3);
-  const teaserActivities = [activities[0], activities[2], activities[4]]; // horse riding, VW tour, rafting
+  const teaserActivities = [activities[0], activities[2], activities[4]].filter(Boolean); // horse riding, VW tour, rafting
 
   return (
     <>
@@ -167,7 +165,7 @@ export default function Home() {
                 pricePer={<Editable path={`rooms.${r.slug}.listPricePer`} fallback={r.listPricePer} rules={{ label: 'Price unit', maxLength: 20 }} />}
                 detailHref={`/room/${r.slug}`}
                 bookHref={waBookLink(overrides[`rooms.${r.slug}.name`] ?? r.name)}
-                image={img(r.hero.id, 1200)}
+                image={r.hero.image}
                 imageAlt={r.hero.alt}
                 editImagePath={`rooms.${r.slug}.hero.image`}
                 imageRules={ROOM_IMAGE_RULES}

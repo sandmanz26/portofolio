@@ -1,4 +1,9 @@
-export const rooms = [
+import { img } from '../utils/img';
+
+// Raw content keeps the original Unsplash id + alt shape; the exported
+// `rooms` maps each into { image, alt } (a plain URL) so it matches the
+// shape Supabase rows use once content is migrated there.
+const ROOMS_RAW = [
   {
     slug: 'joglo',
     shortLabel: 'Joglo',
@@ -162,6 +167,12 @@ export const rooms = [
     listPricePer: 'night',
   },
 ];
+
+export const rooms = ROOMS_RAW.map((r) => ({
+  ...r,
+  hero: { image: img(r.hero.id, 1800), alt: r.hero.alt },
+  thumbs: r.thumbs.map((t) => ({ image: img(t.id, 1200), alt: t.alt })),
+}));
 
 export function findRoom(slug) {
   return rooms.find((r) => r.slug === slug);

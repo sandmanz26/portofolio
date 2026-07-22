@@ -1,6 +1,4 @@
 import { Link } from 'react-router-dom';
-import { activities } from '../data/activities';
-import { workshops } from '../data/workshops';
 import { waLink } from '../utils/whatsapp';
 import IndexRow from '../components/IndexRow';
 import ExpCard from '../components/ExpCard';
@@ -18,7 +16,8 @@ const WORKSHOP_IMAGE_RULES = { aspect: '1:1', minWidth: 1000, minHeight: 1000 };
 
 export default function ActivityList() {
   useDocumentTitle('Activities — Borobudur BnB, Magelang');
-  const { overrides } = useContent();
+  const { overrides, rows } = useContent();
+  const { activities, workshops } = rows;
 
   return (
     <>
@@ -74,7 +73,7 @@ export default function ActivityList() {
                 pricePer={<Editable path={`activities.${a.slug}.listPricePer`} fallback={a.listPricePer} rules={{ label: 'Price unit', maxLength: 20 }} />}
                 detailHref={`/activity/${a.slug}`}
                 bookHref={waBookLink(overrides[`activities.${a.slug}.name`] ?? a.name)}
-                image={img(a.hero.id, 1200)}
+                image={a.hero.image}
                 imageAlt={a.hero.alt}
                 editImagePath={`activities.${a.slug}.hero.image`}
                 imageRules={ACTIVITY_IMAGE_RULES}

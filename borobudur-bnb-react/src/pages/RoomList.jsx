@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { rooms } from '../data/rooms';
 import { img } from '../utils/img';
 import { waBookLink, waLink } from '../utils/whatsapp';
 import PageHero from '../components/PageHero';
@@ -50,7 +49,8 @@ const POLICY_ROWS = [
 
 export default function RoomList() {
   useDocumentTitle('Rooms & Rates — Borobudur BnB, Magelang');
-  const { overrides } = useContent();
+  const { overrides, rows } = useContent();
+  const { rooms } = rows;
 
   return (
     <>
@@ -89,14 +89,14 @@ export default function RoomList() {
               <Reveal className={`room-detail${i % 2 === 1 ? ' room-detail--rev' : ''}`}>
                 <div className="room-detail__gallery">
                   <div className="room-detail__hero">
-                    <EditableImage path={p('hero.image')} fallbackSrc={img(room.hero.id, 1400)} alt={room.hero.alt} rules={HERO_IMAGE_RULES} />
+                    <EditableImage path={p('hero.image')} fallbackSrc={room.hero.image} alt={room.hero.alt} rules={HERO_IMAGE_RULES} />
                   </div>
                   <div className="room-detail__thumbs">
                     {room.thumbs.map((t, ti) => (
                       <EditableImage
-                        key={t.id}
+                        key={t.image || ti}
                         path={p(`thumbs.${ti}.image`)}
-                        fallbackSrc={img(t.id, 500)}
+                        fallbackSrc={t.image}
                         alt={t.alt}
                         rules={THUMB_IMAGE_RULES}
                       />
