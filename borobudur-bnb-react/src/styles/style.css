@@ -610,6 +610,9 @@ p { color: var(--ink-70); }
 .map-frame { overflow: hidden; border: var(--hairline); aspect-ratio: 16/10; }
 .map-frame iframe { width: 100%; height: 100%; border: 0; filter: grayscale(70%) sepia(10%); }
 
+.video-frame { overflow: hidden; border: var(--hairline); aspect-ratio: 16/9; background: var(--ink); }
+.video-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+
 .form-card { border: var(--hairline); padding: clamp(30px, 4vw, 56px); background: var(--paper); }
 .form-card .label { margin-bottom: 18px; }
 .form-card h3 { margin-bottom: 10px; }

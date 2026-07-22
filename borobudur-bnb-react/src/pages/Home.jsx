@@ -297,6 +297,27 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ===== VIDEO ===== */}
+      <section className="section section--flush-top">
+        <div className="container">
+          <Reveal className="section-head">
+            <p className="label">
+              <span className="label__no">( 08 )</span> See It In Motion
+            </p>
+            <h2>A short look around the house</h2>
+          </Reveal>
+          <Reveal className="video-frame">
+            <iframe
+              src="https://www.youtube-nocookie.com/embed/nVJJ5qD8mRo"
+              title="Borobudur BnB video"
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            />
+          </Reveal>
+        </div>
+      </section>
+
       {/* ===== CTA BAND ===== */}
       <section className="cta-band">
         <img src={img('photo-1620549146396-9024d914cd99', 1800)} alt="Golden hour at Borobudur Temple" loading="lazy" />
