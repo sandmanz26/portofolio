@@ -70,15 +70,25 @@ real database:
    haven't already.
 2. **Run the schema**: open Supabase Dashboard → SQL Editor → New query,
    paste the contents of `supabase/schema.sql`, and run it. This creates the
-   `rooms`, `activities`, `workshops`, `testimonials`, `facilities`, and
-   `site_settings` tables, enables Row Level Security (public read,
-   authenticated-only write), and creates the `content-images` Storage
-   bucket with matching policies.
+   `rooms`, `activities`, `workshops`, `testimonials`, `facilities`,
+   `site_settings`, and `images` tables, enables Row Level Security (public
+   read, authenticated-only write), and creates the `content-images` Storage
+   bucket with matching policies. **If the bucket insert fails** (some
+   projects block writing to `storage.buckets` directly, even from the SQL
+   Editor), create it manually instead: Storage → New bucket → name
+   `content-images`, mark it Public — then re-run just the four `create
+   policy ... on storage.objects` statements at the bottom of the file.
 3. **Seed initial content**: run `supabase/seed.sql` the same way. It
    populates all tables with the same content the static site ships with
    (4 rooms, 5 activities, 4 workshops, 3 testimonials, 14 facilities, site
-   info). Re-running it resets content back to these defaults, so keep that
-   in mind if you've already made edits you want to keep.
+   info, and every photo). Re-running it resets content back to these
+   defaults, so keep that in mind if you've already made edits you want to
+   keep.
+   - If you ran an earlier version of `schema.sql` (the one where photos
+     lived in a `hero`/`thumbs`/`media` jsonb column on each row instead of
+     their own `images` table), just re-run the current `schema.sql` first —
+     it safely drops those old columns and adds `images` — then re-run
+     `seed.sql`.
 4. **Create your admin login**: Dashboard → Authentication → Users → Add
    user. Set an email + password and either turn off "email confirmations"
    in Authentication settings or confirm the user manually — otherwise
@@ -113,13 +123,21 @@ An inline "click-to-edit" mode, in the spirit of Elementor/WPBakery:
 
 What's editable: site name/tagline/phone/email/address/social links (Nav,
 Footer, Contact), and per room/activity — name, description, price, story
-text, specs, highlights, and every photo — plus workshops, testimonials, and
-the facilities list.
+text, specs, highlights — plus workshops, testimonials, and the facilities
+list.
+
+**Photos** live in their own `images` table (not embedded in the row they
+illustrate), so there are two patterns depending on the slot:
+- **Hero image** (per room/activity) and **workshop photo** — single slot,
+  click to replace, same as any other field.
+- **Room/activity thumbnail gallery**, and the curated **Home ("A Small
+  Taste")** / **Facility ("In Pictures")** galleries — click any photo to
+  replace or delete it (🗑), and use the dashed **"+ Tambah foto"** tile to
+  add as many more as you like.
 
 Not yet wired up (still requires a direct edit in Supabase's Table Editor or
 in code): page narrative copy (the "Our Story" paragraphs, section intros),
-FAQ items, policy/meeting-rate tables, and the curated photo galleries on
-Home/Facility.
+FAQ items, and policy/meeting-rate tables.
 
 ### Security note
 

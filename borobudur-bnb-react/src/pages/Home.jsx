@@ -15,18 +15,10 @@ import Editable from '../admin/Editable';
 const ROOM_IMAGE_RULES = { aspect: '3:2', minWidth: 1200, minHeight: 800 };
 const ACTIVITY_IMAGE_RULES = { aspect: '4:3', minWidth: 1000, minHeight: 750 };
 
-const GALLERY_ITEMS = [
-  { id: 'photo-1591674585153-ca78d0339b09', alt: 'Borobudur Temple sunrise', thumbW: 900 },
-  { id: 'photo-1584132905271-512c958d674a', alt: 'Bedroom interior', thumbW: 800 },
-  { id: 'photo-1759223607861-f0ef3e617739', alt: 'Bathroom detail', thumbW: 700 },
-  { id: 'photo-1780283574760-e8d7fd944da5', alt: 'Garden swimming pool', thumbW: 800 },
-  { id: 'photo-1754617438035-712ddf5500ef', alt: 'Traditional Indonesian breakfast', thumbW: 1100 },
-];
-
 export default function Home() {
   useDocumentTitle('Borobudur BnB — Boutique Stay Steps From Borobudur Temple, Magelang');
   const { overrides, rows } = useContent();
-  const { rooms, activities, testimonials } = rows;
+  const { rooms, activities, testimonials, homeGallery } = rows;
   const teaserRooms = rooms.slice(0, 3);
   const teaserActivities = [activities[0], activities[2], activities[4]].filter(Boolean); // horse riding, VW tour, rafting
 
@@ -293,7 +285,7 @@ export default function Home() {
               Full room gallery <span aria-hidden>→</span>
             </Link>
           </Reveal>
-          <Gallery items={GALLERY_ITEMS} />
+          <Gallery items={homeGallery} section="home_gallery" />
         </div>
       </section>
 

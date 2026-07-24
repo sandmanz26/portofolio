@@ -1,10 +1,11 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { supabase, supabaseConfigured } from '../lib/supabaseClient';
 import { rooms as staticRooms } from '../data/rooms';
 import { activities as staticActivities } from '../data/activities';
 import { workshops as staticWorkshops } from '../data/workshops';
 import { testimonials as staticTestimonials } from '../data/testimonials';
 import { facilities as staticFacilities } from '../data/facilities';
+import { homeGallery as staticHomeGallery, facilityGallery as staticFacilityGallery } from '../data/galleries';
 import { SITE as staticSite } from '../data/site';
 import { encodeSpecs, decodeSpecs, encodeParagraphs, decodeParagraphs, encodeLines, decodeLines } from './textCodec';
 
@@ -34,15 +35,25 @@ const TABLE_CONFIG = {
   facilities: { table: 'facilities', keyColumn: 'no', keyField: 'no', keyIsIndex: true },
 };
 
-function mapRoomRow(r) {
+// Strips fields (used to drop the embedded hero/thumbs/media that the
+// static fallback data files still carry — photos now come exclusively
+// from the `images` table / extractStaticImages() below).
+function omit(obj, ...fields) {
+  const clone = { ...obj };
+  fields.forEach((f) => delete clone[f]);
+  return clone;
+}
+const staticRoomsBase = staticRooms.map((r) => omit(r, 'hero', 'thumbs'));
+const staticActivitiesBase = staticActivities.map((a) => omit(a, 'hero', 'thumbs'));
+const staticWorkshopsBase = staticWorkshops.map((w) => omit(w, 'media'));
+
+function mapRoomBaseRow(r) {
   return {
     slug: r.slug,
     no: r.no,
     kicker: r.kicker,
     name: r.name,
     lede: r.lede,
-    hero: r.hero || {},
-    thumbs: r.thumbs || [],
     capLeft: r.cap_left,
     capRight: r.cap_right,
     specs: r.specs || [],
@@ -59,7 +70,7 @@ function mapRoomRow(r) {
     listPricePer: r.list_price_per,
   };
 }
-const mapWorkshopRow = (w) => ({ id: w.id, media: w.media || {}, meta: w.meta, title: w.title, text: w.text });
+const mapWorkshopBaseRow = (w) => ({ id: w.id, meta: w.meta, title: w.title, text: w.text });
 const mapTestimonialRow = (t) => ({ id: t.id, quote: t.quote, name: t.name, place: t.place });
 const mapFacilityRow = (f) => ({ no: f.no, title: f.title, text: f.text });
 const mapSiteRow = (s) => ({
@@ -73,11 +84,60 @@ const mapSiteRow = (s) => ({
   facebook: s.facebook,
   mapEmbed: s.map_embed,
 });
+const mapImageRow = (im) => ({
+  id: im.id,
+  section: im.section,
+  entityKey: im.entity_key,
+  role: im.role,
+  sortOrder: im.sort_order,
+  image: im.image,
+  alt: im.alt,
+});
 
-// Every editable field resolves through a flat "collection.key.field" path
-// (e.g. "rooms.joglo.name", "site.phone", "facilities.3.title"). This
-// flattens the live rows into that shape so Editable/EditableImage — which
-// just read overrides[path] — don't need to know rows exist at all.
+// Synthesizes an images-table-shaped list from the static fallback data
+// files, so hero/thumb/media/gallery photos still render correctly before
+// Supabase responds (or if it's never configured at all). Ids are
+// prefixed "static-" so image CRUD functions can recognize and refuse to
+// operate on them (they don't exist as real rows to update/delete).
+function extractStaticImages() {
+  const list = [];
+  let n = 0;
+  const push = (section, entityKey, role, sortOrder, image, alt) => {
+    if (!image) return;
+    list.push({ id: `static-${n++}`, section, entityKey, role, sortOrder, image, alt: alt || '' });
+  };
+  staticRooms.forEach((r) => {
+    push('room', r.slug, 'hero', 0, r.hero?.image, r.hero?.alt);
+    (r.thumbs || []).forEach((t, i) => push('room', r.slug, 'thumb', i, t.image, t.alt));
+  });
+  staticActivities.forEach((a) => {
+    push('activity', a.slug, 'hero', 0, a.hero?.image, a.hero?.alt);
+    (a.thumbs || []).forEach((t, i) => push('activity', a.slug, 'thumb', i, t.image, t.alt));
+  });
+  staticWorkshops.forEach((w) => push('workshop', w.id, 'media', 0, w.media?.image, w.media?.alt));
+  staticHomeGallery.forEach((g, i) => push('home_gallery', null, 'gallery', i, g.image, g.alt));
+  staticFacilityGallery.forEach((g, i) => push('facility_gallery', null, 'gallery', i, g.image, g.alt));
+  return list;
+}
+
+function findOneImage(images, section, entityKey, role) {
+  const found = images.find((im) => im.section === section && im.entityKey === entityKey && im.role === role);
+  return found ? { id: found.id, image: found.image, alt: found.alt } : { id: null, image: '', alt: '' };
+}
+function findManyImages(images, section, entityKey, role) {
+  return images
+    .filter((im) => im.section === section && im.entityKey === entityKey && im.role === role)
+    .sort((a, b) => a.sortOrder - b.sortOrder)
+    .map((im) => ({ id: im.id, image: im.image, alt: im.alt }));
+}
+
+// Every editable scalar/list field resolves through a flat
+// "collection.key.field" path (e.g. "rooms.joglo.name", "site.phone",
+// "facilities.3.title"). Photos are handled separately (see
+// upsertSingleImage / addGalleryImage / updateImageById / deleteImageById)
+// except for the two single-slot cases (hero, workshop media) which stay
+// in this flat map for the existing click-to-edit Editable/EditableImage
+// components to keep working unchanged.
 function flattenAll({ site, rooms, activities, workshops, testimonials, facilities }) {
   const flat = {};
   Object.entries(site || {}).forEach(([k, v]) => {
@@ -102,9 +162,6 @@ function flattenAll({ site, rooms, activities, workshops, testimonials, faciliti
       flat[p('paragraphs')] = encodeParagraphs(row.paragraphs);
       flat[p('highlights')] = encodeLines(row.highlights);
       flat[p('hero.image')] = row.hero?.image || '';
-      (row.thumbs || []).forEach((t, i) => {
-        flat[p(`thumbs.${i}.image`)] = t.image || '';
-      });
     });
   });
   (workshops || []).forEach((w) => {
@@ -133,98 +190,67 @@ function resolvePath(path) {
   return { collection, key: parts[1], field: parts.slice(2).join('.') };
 }
 
-function buildRowPatch(collection, row, field, value) {
-  if (field === 'specs') return { specs: decodeSpecs(value) };
-  if (field === 'paragraphs') return { paragraphs: decodeParagraphs(value) };
-  if (field === 'highlights') return { highlights: decodeLines(value) };
-  if (field === 'hero.image') return { hero: { ...row.hero, image: value } };
-  const thumbMatch = field.match(/^thumbs\.(\d+)\.image$/);
-  if (thumbMatch) {
-    const idx = Number(thumbMatch[1]);
-    return { thumbs: row.thumbs.map((t, i) => (i === idx ? { ...t, image: value } : t)) };
-  }
-  if (field === 'image' && collection === 'workshops') return { media: { ...row.media, image: value } };
-  return { [field]: value };
-}
-
-async function persistField(rowsRef, path, value) {
-  const { collection, key, field } = resolvePath(path);
-
-  if (collection === 'site') {
-    const { error } = await supabase.from('site_settings').update({ [toColumn(field)]: value }).eq('id', 1);
-    return error;
-  }
-
-  const cfg = TABLE_CONFIG[collection];
-  if (!cfg) return new Error(`Unknown collection: ${collection}`);
-  const list = rowsRef.current[collection] || [];
-  const row = cfg.keyIsIndex ? list[Number(key)] : list.find((r) => r[cfg.keyField] === key);
-  if (!row) return new Error(`Row not found for ${path}`);
-
-  const jsPatch = buildRowPatch(collection, row, field, value);
-  const dbPatch = {};
-  Object.entries(jsPatch).forEach(([k, v]) => {
-    dbPatch[toColumn(k)] = v;
-  });
-
-  const { error } = await supabase.from(cfg.table).update(dbPatch).eq(cfg.keyColumn, row[cfg.keyColumn]);
-  return error;
-}
-
-function applyLocalPatch(prevRows, path, value) {
-  const { collection, key, field } = resolvePath(path);
-  if (collection === 'site') {
-    return { ...prevRows, site: { ...prevRows.site, [field]: value } };
-  }
-  const cfg = TABLE_CONFIG[collection];
-  const list = prevRows[collection] || [];
-  const idx = cfg.keyIsIndex ? Number(key) : list.findIndex((r) => r[cfg.keyField] === key);
-  if (idx === -1 || !list[idx]) return prevRows;
-  const nextRow = { ...list[idx], ...buildRowPatch(collection, list[idx], field, value) };
-  const nextList = [...list];
-  nextList[idx] = nextRow;
-  return { ...prevRows, [collection]: nextList };
-}
-
-const INITIAL_ROWS = {
-  site: staticSite,
-  rooms: staticRooms,
-  activities: staticActivities,
-  workshops: staticWorkshops,
-  testimonials: staticTestimonials,
-  facilities: staticFacilities,
-};
-
 export function ContentProvider({ children }) {
-  const [rows, setRows] = useState(INITIAL_ROWS);
-  const [overrides, setOverrides] = useState(() => flattenAll(INITIAL_ROWS));
+  const [roomsBase, setRoomsBase] = useState(staticRoomsBase);
+  const [activitiesBase, setActivitiesBase] = useState(staticActivitiesBase);
+  const [workshopsBase, setWorkshopsBase] = useState(staticWorkshopsBase);
+  const [testimonials, setTestimonials] = useState(staticTestimonials);
+  const [facilities, setFacilities] = useState(staticFacilities);
+  const [site, setSite] = useState(staticSite);
+  const [imagesRaw, setImagesRaw] = useState(extractStaticImages);
   const [loading, setLoading] = useState(supabaseConfigured);
   const [session, setSession] = useState(null);
   const [authError, setAuthError] = useState('');
   const [activeEditor, setActiveEditor] = useState(null);
-  const rowsRef = useRef(rows);
-  rowsRef.current = rows;
+  const imagesRef = useRef(imagesRaw);
+  imagesRef.current = imagesRaw;
+
+  const rooms = useMemo(
+    () =>
+      roomsBase.map((r) => ({
+        ...r,
+        hero: findOneImage(imagesRaw, 'room', r.slug, 'hero'),
+        thumbs: findManyImages(imagesRaw, 'room', r.slug, 'thumb'),
+      })),
+    [roomsBase, imagesRaw]
+  );
+  const activities = useMemo(
+    () =>
+      activitiesBase.map((a) => ({
+        ...a,
+        hero: findOneImage(imagesRaw, 'activity', a.slug, 'hero'),
+        thumbs: findManyImages(imagesRaw, 'activity', a.slug, 'thumb'),
+      })),
+    [activitiesBase, imagesRaw]
+  );
+  const workshops = useMemo(
+    () => workshopsBase.map((w) => ({ ...w, media: findOneImage(imagesRaw, 'workshop', w.id, 'media') })),
+    [workshopsBase, imagesRaw]
+  );
+  const homeGallery = useMemo(() => findManyImages(imagesRaw, 'home_gallery', null, 'gallery'), [imagesRaw]);
+  const facilityGallery = useMemo(() => findManyImages(imagesRaw, 'facility_gallery', null, 'gallery'), [imagesRaw]);
+
+  const rows = { site, rooms, activities, workshops, testimonials, facilities, homeGallery, facilityGallery };
+  const overrides = useMemo(() => flattenAll(rows), [site, rooms, activities, workshops, testimonials, facilities]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadAll() {
     setLoading(true);
-    const [roomsR, activitiesR, workshopsR, testimonialsR, facilitiesR, siteR] = await Promise.all([
+    const [roomsR, activitiesR, workshopsR, testimonialsR, facilitiesR, siteR, imagesR] = await Promise.all([
       supabase.from('rooms').select('*').order('sort_order'),
       supabase.from('activities').select('*').order('sort_order'),
       supabase.from('workshops').select('*').order('sort_order'),
       supabase.from('testimonials').select('*').order('sort_order'),
       supabase.from('facilities').select('*').order('sort_order'),
       supabase.from('site_settings').select('*').eq('id', 1).maybeSingle(),
+      supabase.from('images').select('*').order('sort_order'),
     ]);
-    const nextRows = {
-      rooms: roomsR.data?.length ? roomsR.data.map(mapRoomRow) : staticRooms,
-      activities: activitiesR.data?.length ? activitiesR.data.map(mapRoomRow) : staticActivities,
-      workshops: workshopsR.data?.length ? workshopsR.data.map(mapWorkshopRow) : staticWorkshops,
-      testimonials: testimonialsR.data?.length ? testimonialsR.data.map(mapTestimonialRow) : staticTestimonials,
-      facilities: facilitiesR.data?.length ? facilitiesR.data.map(mapFacilityRow) : staticFacilities,
-      site: siteR.data ? mapSiteRow(siteR.data) : staticSite,
-    };
-    setRows(nextRows);
-    setOverrides(flattenAll(nextRows));
+    setRoomsBase(roomsR.data?.length ? roomsR.data.map(mapRoomBaseRow) : staticRoomsBase);
+    setActivitiesBase(activitiesR.data?.length ? activitiesR.data.map(mapRoomBaseRow) : staticActivitiesBase);
+    setWorkshopsBase(workshopsR.data?.length ? workshopsR.data.map(mapWorkshopBaseRow) : staticWorkshopsBase);
+    setTestimonials(testimonialsR.data?.length ? testimonialsR.data.map(mapTestimonialRow) : staticTestimonials);
+    setFacilities(facilitiesR.data?.length ? facilitiesR.data.map(mapFacilityRow) : staticFacilities);
+    setSite(siteR.data ? mapSiteRow(siteR.data) : staticSite);
+    setImagesRaw(imagesR.data?.length ? imagesR.data.map(mapImageRow) : extractStaticImages());
     setLoading(false);
   }
 
@@ -241,10 +267,103 @@ export function ContentProvider({ children }) {
     if (!supabaseConfigured) {
       throw new Error('Supabase belum dikonfigurasi (VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY kosong).');
     }
-    const error = await persistField(rowsRef, path, value);
+    const { collection, key, field } = resolvePath(path);
+
+    if (field === 'hero.image') {
+      await upsertSingleImage(collection === 'rooms' ? 'room' : 'activity', key, 'hero', value);
+      return;
+    }
+    if (collection === 'workshops' && field === 'image') {
+      await upsertSingleImage('workshop', key, 'media', value);
+      return;
+    }
+    if (collection === 'site') {
+      const { error } = await supabase.from('site_settings').update({ [toColumn(field)]: value }).eq('id', 1);
+      if (error) throw error;
+      setSite((prev) => ({ ...prev, [field]: value }));
+      return;
+    }
+
+    const cfg = TABLE_CONFIG[collection];
+    if (!cfg) throw new Error(`Unknown collection: ${collection}`);
+    const baseList = { rooms: roomsBase, activities: activitiesBase, workshops: workshopsBase, testimonials, facilities }[collection];
+    const row = cfg.keyIsIndex ? baseList[Number(key)] : baseList.find((r) => r[cfg.keyField] === key);
+    if (!row) throw new Error(`Row not found for ${path}`);
+
+    let jsPatch;
+    if (field === 'specs') jsPatch = { specs: decodeSpecs(value) };
+    else if (field === 'paragraphs') jsPatch = { paragraphs: decodeParagraphs(value) };
+    else if (field === 'highlights') jsPatch = { highlights: decodeLines(value) };
+    else jsPatch = { [field]: value };
+
+    const dbPatch = {};
+    Object.entries(jsPatch).forEach(([k, v]) => {
+      dbPatch[toColumn(k)] = v;
+    });
+
+    const { error } = await supabase.from(cfg.table).update(dbPatch).eq(cfg.keyColumn, row[cfg.keyColumn]);
     if (error) throw error;
-    setOverrides((prev) => ({ ...prev, [path]: value }));
-    setRows((prev) => applyLocalPatch(prev, path, value));
+
+    const setter = { rooms: setRoomsBase, activities: setActivitiesBase, workshops: setWorkshopsBase, testimonials: setTestimonials, facilities: setFacilities }[collection];
+    setter((prev) => {
+      const idx = cfg.keyIsIndex ? Number(key) : prev.findIndex((r) => r[cfg.keyField] === key);
+      if (idx === -1) return prev;
+      const next = [...prev];
+      next[idx] = { ...next[idx], ...jsPatch };
+      return next;
+    });
+  }
+
+  // Hero images and workshop media are single-slot: replace only. Insert
+  // the row on first use, update it after that.
+  async function upsertSingleImage(section, entityKey, role, imageUrl) {
+    const existing = imagesRef.current.find(
+      (im) => im.section === section && im.entityKey === entityKey && im.role === role && !String(im.id).startsWith('static-')
+    );
+    if (existing) {
+      const { error } = await supabase.from('images').update({ image: imageUrl }).eq('id', existing.id);
+      if (error) throw error;
+      setImagesRaw((prev) => prev.map((im) => (im.id === existing.id ? { ...im, image: imageUrl } : im)));
+    } else {
+      const { data, error } = await supabase
+        .from('images')
+        .insert({ section, entity_key: entityKey, role, sort_order: 0, image: imageUrl, alt: '' })
+        .select()
+        .single();
+      if (error) throw error;
+      setImagesRaw((prev) => [...prev.filter((im) => !(im.section === section && im.entityKey === entityKey && im.role === role)), mapImageRow(data)]);
+    }
+  }
+
+  // Thumbs and galleries are multi-slot: any number of photos, added or
+  // removed freely.
+  async function addGalleryImage(section, entityKey, role, { image, alt }) {
+    if (!supabaseConfigured) throw new Error('Supabase belum dikonfigurasi.');
+    const group = imagesRef.current.filter((im) => im.section === section && im.entityKey === entityKey && im.role === role);
+    const nextOrder = group.length ? Math.max(...group.map((g) => g.sortOrder)) + 1 : 0;
+    const { data, error } = await supabase
+      .from('images')
+      .insert({ section, entity_key: entityKey, role, sort_order: nextOrder, image, alt: alt || '' })
+      .select()
+      .single();
+    if (error) throw error;
+    setImagesRaw((prev) => [...prev, mapImageRow(data)]);
+  }
+
+  async function updateImageById(id, patch) {
+    if (!supabaseConfigured) throw new Error('Supabase belum dikonfigurasi.');
+    if (String(id).startsWith('static-')) throw new Error('Data foto belum selesai dimuat dari database — coba lagi sebentar.');
+    const { error } = await supabase.from('images').update(patch).eq('id', id);
+    if (error) throw error;
+    setImagesRaw((prev) => prev.map((im) => (im.id === id ? { ...im, ...patch } : im)));
+  }
+
+  async function deleteImageById(id) {
+    if (!supabaseConfigured) throw new Error('Supabase belum dikonfigurasi.');
+    if (String(id).startsWith('static-')) throw new Error('Data foto belum selesai dimuat dari database — coba lagi sebentar.');
+    const { error } = await supabase.from('images').delete().eq('id', id);
+    if (error) throw error;
+    setImagesRaw((prev) => prev.filter((im) => im.id !== id));
   }
 
   async function uploadImage(file) {
@@ -298,6 +417,9 @@ export function ContentProvider({ children }) {
     supabaseConfigured,
     setOverride,
     uploadImage,
+    addGalleryImage,
+    updateImageById,
+    deleteImageById,
     activeEditor,
     openEditor,
     closeEditor,

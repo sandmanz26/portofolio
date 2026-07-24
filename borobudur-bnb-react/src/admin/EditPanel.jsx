@@ -25,7 +25,7 @@ export default function EditPanel() {
   }, [activeEditor]);
 
   if (!activeEditor) return null;
-  const { label, rules = {}, type, path } = activeEditor;
+  const { label, rules = {}, type, path, onSave: customOnSave } = activeEditor;
 
   function checkImage(url, imgRules) {
     if (!url) {
@@ -83,7 +83,11 @@ export default function EditPanel() {
     setSaving(true);
     setSaveError('');
     try {
-      await setOverride(path, draft);
+      if (customOnSave) {
+        await customOnSave(draft);
+      } else {
+        await setOverride(path, draft);
+      }
       closeEditor();
     } catch (err) {
       setSaveError(err.message || 'Gagal menyimpan ke database.');

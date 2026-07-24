@@ -6,6 +6,8 @@ import { useContent } from '../admin/ContentContext';
 import Editable from '../admin/Editable';
 import EditableImage from '../admin/EditableImage';
 import EditListButton from '../admin/EditListButton';
+import ImageManagerItem from '../admin/ImageManagerItem';
+import AddImageTile from '../admin/AddImageTile';
 import { encodeSpecs, decodeSpecs, encodeParagraphs, decodeParagraphs, encodeLines, decodeLines } from '../admin/textCodec';
 
 const HERO_IMAGE_RULES = { aspect: '3:2', minWidth: 1400, minHeight: 933 };
@@ -17,12 +19,13 @@ const THUMB_IMAGE_RULES = { aspect: '1:1', minWidth: 700, minHeight: 700 };
 // "rooms.joglo") namespaces every editable field on this item.
 export default function DetailPage({ item, parentLabel, parentHref, prev, next, pathPrefix }) {
   const { open } = useLightbox();
-  const { overrides } = useContent();
+  const { overrides, addGalleryImage, updateImageById, deleteImageById } = useContent();
+  const [collectionName, entityKey] = pathPrefix.split('.');
+  const imageSection = collectionName === 'rooms' ? 'room' : 'activity';
 
   const p = (field) => `${pathPrefix}.${field}`;
   const name = overrides[p('name')] ?? item.name;
   const heroSrc = overrides[p('hero.image')] || item.hero.image;
-  const thumbSrcs = item.thumbs.map((t, i) => overrides[p(`thumbs.${i}.image`)] || t.image);
 
   const specs = decodeSpecs(overrides[p('specs')] ?? encodeSpecs(item.specs));
   const paragraphs = decodeParagraphs(overrides[p('paragraphs')] ?? encodeParagraphs(item.paragraphs));
@@ -32,7 +35,7 @@ export default function DetailPage({ item, parentLabel, parentHref, prev, next, 
 
   const galleryImages = [
     { src: heroSrc, alt: item.hero.alt },
-    ...item.thumbs.map((t, i) => ({ src: thumbSrcs[i], alt: t.alt })),
+    ...item.thumbs.map((t) => ({ src: t.image, alt: t.alt })),
   ];
 
   return (
@@ -67,15 +70,20 @@ export default function DetailPage({ item, parentLabel, parentHref, prev, next, 
               </div>
               <div className={`detail-thumbs${item.thumbs.length === 3 ? ' detail-thumbs--tri' : ''}`}>
                 {item.thumbs.map((t, i) => (
-                  <div key={t.image || i} onClick={() => open(galleryImages, i + 1)}>
-                    <EditableImage
-                      path={p(`thumbs.${i}.image`)}
-                      fallbackSrc={thumbSrcs[i]}
-                      alt={t.alt}
-                      rules={THUMB_IMAGE_RULES}
-                    />
-                  </div>
+                  <ImageManagerItem
+                    key={t.id}
+                    image={t.image}
+                    alt={t.alt}
+                    rules={THUMB_IMAGE_RULES}
+                    onImageClick={() => open(galleryImages, i + 1)}
+                    onReplace={(url) => updateImageById(t.id, { image: url })}
+                    onDelete={() => deleteImageById(t.id)}
+                  />
                 ))}
+                <AddImageTile
+                  rules={THUMB_IMAGE_RULES}
+                  onAdd={(url) => addGalleryImage(imageSection, entityKey, 'thumb', { image: url, alt: '' })}
+                />
               </div>
               <div className="split__caption" style={{ marginTop: 16 }}>
                 <span>{item.capLeft}</span>

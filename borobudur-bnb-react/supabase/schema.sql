@@ -1,10 +1,19 @@
 -- Borobudur BnB — Supabase schema
 -- Run this once in the Supabase SQL Editor (Project > SQL Editor > New query)
--- before running seed.sql.
+-- before running seed.sql. Safe to re-run.
+--
+-- If you already ran an earlier version of this file (the one where photos
+-- lived in a `hero`/`thumbs`/`media` jsonb column on each row), this version
+-- drops those columns and moves every photo into its own row in a new
+-- `images` table instead — so a room/activity/gallery can have any number
+-- of photos added or removed, not just a fixed set replaced in place.
+-- Re-run seed.sql afterwards to repopulate images for the new table.
 
 -- ============================================================
 -- TABLES
 -- ============================================================
+
+create extension if not exists pgcrypto; -- provides gen_random_uuid()
 
 create table if not exists site_settings (
   id int primary key default 1,
@@ -27,8 +36,6 @@ create table if not exists rooms (
   kicker text not null default '',
   name text not null default '',
   lede text not null default '',
-  hero jsonb not null default '{}'::jsonb,      -- { "image": "https://...", "alt": "..." }
-  thumbs jsonb not null default '[]'::jsonb,     -- [{ "image": "https://...", "alt": "..." }, ...]
   cap_left text not null default '',
   cap_right text not null default '',
   specs jsonb not null default '[]'::jsonb,      -- [["Sleeps","2 guests"], ...]
@@ -44,6 +51,8 @@ create table if not exists rooms (
   list_price text not null default '',
   list_price_per text not null default ''
 );
+alter table rooms drop column if exists hero;
+alter table rooms drop column if exists thumbs;
 
 create table if not exists activities (
   slug text primary key,
@@ -52,8 +61,6 @@ create table if not exists activities (
   kicker text not null default '',
   name text not null default '',
   lede text not null default '',
-  hero jsonb not null default '{}'::jsonb,
-  thumbs jsonb not null default '[]'::jsonb,
   cap_left text not null default '',
   cap_right text not null default '',
   specs jsonb not null default '[]'::jsonb,
@@ -69,15 +76,17 @@ create table if not exists activities (
   list_price text not null default '',
   list_price_per text not null default ''
 );
+alter table activities drop column if exists hero;
+alter table activities drop column if exists thumbs;
 
 create table if not exists workshops (
   id text primary key,
   sort_order int not null default 0,
-  media jsonb not null default '{}'::jsonb, -- { "image": "https://...", "alt": "..." }
   meta text not null default '',
   title text not null default '',
   text text not null default ''
 );
+alter table workshops drop column if exists media;
 
 create table if not exists testimonials (
   id int primary key,
@@ -94,6 +103,28 @@ create table if not exists facilities (
   text text not null default ''
 );
 
+-- Every photo on the site — room/activity hero & gallery thumbs, workshop
+-- photos, and the curated Home/Facility galleries — lives here instead of
+-- being embedded in the row it illustrates.
+--   section:    'room' | 'activity' | 'workshop' | 'home_gallery' | 'facility_gallery'
+--   entity_key: the room/activity slug or workshop id; null for the two
+--               standalone galleries (they aren't tied to one entity)
+--   role:       'hero' | 'thumb' | 'media' | 'gallery'
+--     - 'hero'/'media' are single-slot (exactly 0 or 1 row) — replace only
+--     - 'thumb'/'gallery' are multi-slot — can have any number of rows,
+--       added or removed freely, ordered by sort_order
+create table if not exists images (
+  id uuid primary key default gen_random_uuid(),
+  section text not null,
+  entity_key text,
+  role text not null default 'gallery',
+  sort_order int not null default 0,
+  image text not null default '',
+  alt text not null default ''
+);
+
+create index if not exists images_lookup_idx on images (section, entity_key, role, sort_order);
+
 -- ============================================================
 -- ROW LEVEL SECURITY
 -- Public (anon) can read everything. Only a signed-in user (the
@@ -106,12 +137,13 @@ alter table activities enable row level security;
 alter table workshops enable row level security;
 alter table testimonials enable row level security;
 alter table facilities enable row level security;
+alter table images enable row level security;
 
 do $$
 declare
   t text;
 begin
-  foreach t in array array['site_settings','rooms','activities','workshops','testimonials','facilities']
+  foreach t in array array['site_settings','rooms','activities','workshops','testimonials','facilities','images']
   loop
     execute format('drop policy if exists "public read" on %I', t);
     execute format('create policy "public read" on %I for select using (true)', t);

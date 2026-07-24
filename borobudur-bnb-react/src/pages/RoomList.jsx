@@ -10,6 +10,8 @@ import { useContent } from '../admin/ContentContext';
 import Editable from '../admin/Editable';
 import EditableImage from '../admin/EditableImage';
 import EditListButton from '../admin/EditListButton';
+import ImageManagerItem from '../admin/ImageManagerItem';
+import AddImageTile from '../admin/AddImageTile';
 import { encodeSpecs, decodeSpecs } from '../admin/textCodec';
 
 const HERO_IMAGE_RULES = { aspect: '3:2', minWidth: 1400, minHeight: 933 };
@@ -49,7 +51,7 @@ const POLICY_ROWS = [
 
 export default function RoomList() {
   useDocumentTitle('Rooms & Rates — Borobudur BnB, Magelang');
-  const { overrides, rows } = useContent();
+  const { overrides, rows, addGalleryImage, updateImageById, deleteImageById } = useContent();
   const { rooms } = rows;
 
   return (
@@ -92,15 +94,20 @@ export default function RoomList() {
                     <EditableImage path={p('hero.image')} fallbackSrc={room.hero.image} alt={room.hero.alt} rules={HERO_IMAGE_RULES} />
                   </div>
                   <div className="room-detail__thumbs">
-                    {room.thumbs.map((t, ti) => (
-                      <EditableImage
-                        key={t.image || ti}
-                        path={p(`thumbs.${ti}.image`)}
-                        fallbackSrc={t.image}
+                    {room.thumbs.map((t) => (
+                      <ImageManagerItem
+                        key={t.id}
+                        image={t.image}
                         alt={t.alt}
                         rules={THUMB_IMAGE_RULES}
+                        onReplace={(url) => updateImageById(t.id, { image: url })}
+                        onDelete={() => deleteImageById(t.id)}
                       />
                     ))}
+                    <AddImageTile
+                      rules={THUMB_IMAGE_RULES}
+                      onAdd={(url) => addGalleryImage('room', room.slug, 'thumb', { image: url, alt: '' })}
+                    />
                   </div>
                 </div>
                 <div className="room-detail__body">

@@ -6,7 +6,8 @@
 -- Image URLs point at the same Unsplash photos used by the placeholder
 -- site (https://images.unsplash.com/<id> / https://plus.unsplash.com/<id>).
 -- Replace them with real property photos whenever you're ready — either
--- by pasting a new URL or uploading a file from the /admin editor.
+-- by pasting a new URL, uploading a file, or adding/removing photos from
+-- the /admin editor.
 
 -- ============================================================
 -- SITE SETTINGS
@@ -31,16 +32,10 @@ values (
 -- ============================================================
 delete from rooms where slug in ('joglo','garden','cottage','rooftop');
 
-insert into rooms (slug, sort_order, no, kicker, name, lede, hero, thumbs, cap_left, cap_right, specs, price, per, note, story_label, story_title, paragraphs, highlights, list_meta, list_desc, list_price, list_price_per)
+insert into rooms (slug, sort_order, no, kicker, name, lede, cap_left, cap_right, specs, price, per, note, story_label, story_title, paragraphs, highlights, list_meta, list_desc, list_price, list_price_per)
 values (
   'joglo', 1, '01', $$Most Booked · Sleeps 2$$, $$Joglo Heritage Suite$$,
   $$Our signature room, built inside a genuine reclaimed teak joglo frame over eighty years old. Wooden shutters open onto the rice fields.$$,
-  $${"image": "https://images.unsplash.com/photo-1584132905271-512c958d674a?q=80&w=1800&auto=format&fit=crop", "alt": "Joglo Heritage Suite bedroom with white linen"}$$,
-  $$[
-    {"image": "https://images.unsplash.com/photo-1759223607861-f0ef3e617739?q=80&w=1200&auto=format&fit=crop", "alt": "Ensuite bathroom"},
-    {"image": "https://images.unsplash.com/photo-1631340729644-8b8aad1e9dba?q=80&w=1200&auto=format&fit=crop", "alt": "View toward Borobudur Temple"},
-    {"image": "https://images.unsplash.com/photo-1754597302822-4b96f3442d3f?q=80&w=1200&auto=format&fit=crop", "alt": "Reading corner"}
-  ]$$,
   $$The Joglo Suite$$, $$32 m² · Rice-field view$$,
   $$[["Sleeps","2 guests · 1 king bed"],["Size","32 m² + private veranda"],["View","Rice fields"],["Comfort","AC · Ensuite · Hot water"],["Included","Breakfast · Sunrise walk · Wi-Fi"]]$$,
   $$Rp 650.000$$, $$/ night$$, $$2 of 8 rooms left this week$$,
@@ -61,11 +56,6 @@ values (
 (
   'garden', 2, '02', $$Best Value · Sleeps 2$$, $$Garden View Room$$,
   $$Our most affordable room, opening directly onto the pool garden — and just as close to the temple as every other room in the house.$$,
-  $${"image": "https://images.unsplash.com/photo-1754597302822-4b96f3442d3f?q=80&w=1800&auto=format&fit=crop", "alt": "Garden View Room cozy interior"}$$,
-  $$[
-    {"image": "https://images.unsplash.com/photo-1780283574760-e8d7fd944da5?q=80&w=1200&auto=format&fit=crop", "alt": "Pool garden outside the room"},
-    {"image": "https://images.unsplash.com/photo-1759223607861-f0ef3e617739?q=80&w=1200&auto=format&fit=crop", "alt": "Bathroom detail"}
-  ]$$,
   $$The Garden Room$$, $$24 m² · Pool garden$$,
   $$[["Sleeps","2 guests · 1 queen bed"],["Size","24 m²"],["View","Garden & pool"],["Comfort","Ceiling fan · Ensuite · Hot water"],["Included","Breakfast · Sunrise walk · Wi-Fi"]]$$,
   $$Rp 480.000$$, $$/ night$$, $$Free upgrade to AC on request, subject to availability$$,
@@ -86,12 +76,6 @@ values (
 (
   'cottage', 3, '03', $$For Four Guests · 2 Bedrooms$$, $$Family Cottage$$,
   $$A standalone two-bedroom cottage at the edge of our garden, facing the rice terrace — the quietest option on the property.$$,
-  $${"image": "https://plus.unsplash.com/premium_photo-1697730050329-e11a8eb63c69?q=80&w=1800&auto=format&fit=crop", "alt": "Family Cottage beside the rice terrace"}$$,
-  $$[
-    {"image": "https://images.unsplash.com/photo-1584132905271-512c958d674a?q=80&w=1200&auto=format&fit=crop", "alt": "Master bedroom in the cottage"},
-    {"image": "https://images.unsplash.com/photo-1754597302822-4b96f3442d3f?q=80&w=1200&auto=format&fit=crop", "alt": "Second bedroom"},
-    {"image": "https://images.unsplash.com/photo-1780283574760-e8d7fd944da5?q=80&w=1200&auto=format&fit=crop", "alt": "Shared garden and pool nearby"}
-  ]$$,
   $$The Cottage$$, $$48 m² · Rice terrace$$,
   $$[["Sleeps","4 guests · 2 bedrooms"],["Size","48 m² + private terrace"],["View","Rice terrace"],["Comfort","AC · Kitchenette · Ensuite"],["Included","Breakfast · Sunrise walk · Wi-Fi"]]$$,
   $$Rp 890.000$$, $$/ night$$, $$Extra bed available for a 5th guest — Rp 150.000/night$$,
@@ -112,11 +96,6 @@ values (
 (
   'rooftop', 4, '04', $$Best View · One Room Only$$, $$Rooftop Sunrise Room$$,
   $$Our only room with a private rooftop terrace facing Borobudur directly — no tour required to catch the sunrise.$$,
-  $${"image": "https://images.unsplash.com/photo-1620549146396-9024d914cd99?q=80&w=1800&auto=format&fit=crop", "alt": "View of Borobudur Temple from the rooftop terrace"}$$,
-  $$[
-    {"image": "https://images.unsplash.com/photo-1591674585153-ca78d0339b09?q=80&w=1200&auto=format&fit=crop", "alt": "Sunrise silhouette from the rooftop"},
-    {"image": "https://images.unsplash.com/photo-1759223607861-f0ef3e617739?q=80&w=1200&auto=format&fit=crop", "alt": "Ensuite bathroom"}
-  ]$$,
   $$The Rooftop Room$$, $$28 m² + terrace$$,
   $$[["Sleeps","2 guests · 1 king bed"],["Size","28 m² + rooftop terrace"],["View","Borobudur Temple, direct"],["Comfort","AC · Ensuite · Hot water"],["Included","Breakfast · Sunrise walk · Wi-Fi"]]$$,
   $$Rp 750.000$$, $$/ night$$, $$One room of this type — books out weeks ahead in high season$$,
@@ -140,15 +119,10 @@ values (
 -- ============================================================
 delete from activities where slug in ('horse-riding','andong-tour','vw-tour','atv','rafting');
 
-insert into activities (slug, sort_order, no, kicker, name, lede, hero, thumbs, cap_left, cap_right, specs, price, per, note, story_label, story_title, paragraphs, highlights, list_meta, list_desc, list_price, list_price_per)
+insert into activities (slug, sort_order, no, kicker, name, lede, cap_left, cap_right, specs, price, per, note, story_label, story_title, paragraphs, highlights, list_meta, list_desc, list_price, list_price_per)
 values (
   'horse-riding', 1, '01', $$Land · 1.5 Hours · Beginner Friendly$$, $$Village Horseback Ride$$,
   $$A slow trail through rice paddies, bamboo groves and hamlet lanes — the same paths our grandparents rode, at the same golden hours.$$,
-  $${"image": "https://images.unsplash.com/photo-1546700990-7b6416f2d90c?q=80&w=1800&auto=format&fit=crop", "alt": "Rider on a brown horse in open country"}$$,
-  $$[
-    {"image": "https://images.unsplash.com/photo-1609128231746-356e747a53bc?q=80&w=1200&auto=format&fit=crop", "alt": "Guided ride along a quiet country road"},
-    {"image": "https://images.unsplash.com/photo-1633767979501-6225d151ba70?q=80&w=1200&auto=format&fit=crop", "alt": "Golden-hour ride at the end of the day"}
-  ]$$,
   $$The paddies route$$, $$Ngaran — Wanurejo$$,
   $$[["Duration","1.5 hours, guided"],["Departs","Daily 06:00 & 15:30"],["Level","Beginner friendly · min age 8"],["Includes","Horse, helmet, guide, water"],["Meet at","BnB front garden"]]$$,
   $$Rp 250.000$$, $$/ person$$, $$Book by 8 pm for the next morning's sunrise slot$$,
@@ -169,11 +143,6 @@ values (
 (
   'andong-tour', 2, '02', $$Land · 2 Hours · Family Friendly$$, $$Village Andong Tour$$,
   $$Climb into a hand-painted horse cart and let someone else do the walking — a route we mapped ourselves, through paddies most visitors never see.$$,
-  $${"image": "https://images.unsplash.com/photo-1721048061987-d4b37f6ec11b?q=80&w=1800&auto=format&fit=crop", "alt": "Horse-drawn cart travelling a quiet country road"}$$,
-  $$[
-    {"image": "https://plus.unsplash.com/premium_photo-1697730050329-e11a8eb63c69?q=80&w=1200&auto=format&fit=crop", "alt": "Rice paddies along the andong route"},
-    {"image": "https://images.unsplash.com/photo-1546700990-7b6416f2d90c?q=80&w=1200&auto=format&fit=crop", "alt": "Horse resting in the village"}
-  ]$$,
   $$The exclusive loop$$, $$Ngaran — smallholder farms$$,
   $$[["Duration","2 hours, guided"],["Capacity","Per cart · 3–4 adults"],["Route","Rice paddies, fish ponds, home industries"],["Includes","Driver, tea break & snack"],["Best for","Families, first-timers, slow mornings"]]$$,
   $$Rp 300.000$$, $$/ cart$$, $$Two carts available — book both for larger groups$$,
@@ -194,11 +163,6 @@ values (
 (
   'vw-tour', 3, '03', $$Road · 2.5 Hours · Up to 4 Guests$$, $$VW Classic Village Tour$$,
   $$An open-top classic Volkswagen, a driver who grew up here, and two and a half unhurried hours of back roads, hidden viewpoints and village workshops.$$,
-  $${"image": "https://images.unsplash.com/photo-1619021977849-f802cdcabc76?q=80&w=1800&auto=format&fit=crop", "alt": "Classic white Volkswagen on a tree-lined dirt road"}$$,
-  $$[
-    {"image": "https://images.unsplash.com/photo-1761231558155-8bd3812a681a?q=80&w=1200&auto=format&fit=crop", "alt": "Vintage Volkswagen driving a scenic countryside road"},
-    {"image": "https://plus.unsplash.com/premium_photo-1697730050329-e11a8eb63c69?q=80&w=1200&auto=format&fit=crop", "alt": "Rice terraces along the tour route"}
-  ]$$,
   $$The countryside loop$$, $$Borobudur — Punthuk Setumbu$$,
   $$[["Duration","2.5 hours, door to door"],["Departs","Daily 08:00 & 14:00"],["Capacity","Per car · up to 4 guests"],["Includes","Driver-guide, fuel, water, rain canopy"],["Excludes","Entrance tickets & parking fees"]]$$,
   $$Rp 450.000$$, $$/ car$$, $$Two cars available — combine them for groups of up to 8$$,
@@ -219,11 +183,6 @@ values (
 (
   'atv', 4, '04', $$Land · 1.5–3.5 Hours · Family Friendly$$, $$ATV Adventure$$,
   $$Handlebars, mud, and a local guide who knows every shortcut through the paddies, the bamboo forest and the riverside villages around Borobudur.$$,
-  $${"image": "https://images.unsplash.com/photo-1506797848948-339596317992?q=80&w=1800&auto=format&fit=crop", "alt": "Rider kicking up dust on an ATV quad bike"}$$,
-  $$[
-    {"image": "https://plus.unsplash.com/premium_photo-1697730050329-e11a8eb63c69?q=80&w=1200&auto=format&fit=crop", "alt": "Rice paddies crossed on the ATV route"},
-    {"image": "https://images.unsplash.com/photo-1631340729644-8b8aad1e9dba?q=80&w=1200&auto=format&fit=crop", "alt": "Borobudur Temple, one of the route's photo stops"}
-  ]$$,
   $$Two routes$$, $$Funventure — Nature Explorer$$,
   $$[["Funventure","1.5–2.5 hours · mandala spot, village tour, bee farm"],["Nature Explorer","2.5–3.5 hours · adds Pawon Temple, civet-coffee farm, riverside trail"],["Level","Beginner friendly, guided throughout"],["Includes","ATV, helmet, local guide"],["Meet at","BnB front garden"]]$$,
   $$Rp 300.000$$, $$/ person, Funventure$$, $$Nature Explorer package from Rp 450.000/person — ask us for details$$,
@@ -244,12 +203,6 @@ values (
 (
   'rafting', 5, '05', $$River · 3 Hours · Grade II–III$$, $$Elo River Rafting$$,
   $$Three hours door-to-door on friendly grade II–III water twenty minutes from the house — big enough to soak you, gentle enough for first-timers and kids.$$,
-  $${"image": "https://images.unsplash.com/photo-1599443380179-33737c17ca81?q=80&w=1800&auto=format&fit=crop", "alt": "Group paddling a raft down river rapids"}$$,
-  $$[
-    {"image": "https://images.unsplash.com/photo-1641584495089-5914d85d9bcc?q=80&w=1200&auto=format&fit=crop", "alt": "Rafting team paddling through white water"},
-    {"image": "https://images.unsplash.com/photo-1760904652241-36ad6b4e752f?q=80&w=1200&auto=format&fit=crop", "alt": "Raft manoeuvring past rocks in the rapids"},
-    {"image": "https://images.unsplash.com/photo-1629248457649-b082812aea6c?q=80&w=1200&auto=format&fit=crop", "alt": "Paddlers on calm water between rapids"}
-  ]$$,
   $$The Elo run$$, $$Grade II–III · ~3 hrs door-to-door$$,
   $$[["Duration","3 hours, door to door"],["River","Elo · grade II–III, safe for children"],["Capacity","Max 4 guests per boat"],["Includes","Pickup & drop-off, guide, toilets & changing rooms, coconut break"],["Level","No experience needed"]]$$,
   $$Rp 350.000$$, $$/ person$$, $$Pickup and drop-off at Borobudur BnB included$$,
@@ -273,29 +226,25 @@ values (
 -- ============================================================
 delete from workshops where id in ('batik','pottery','silver','gamelan');
 
-insert into workshops (id, sort_order, media, meta, title, text)
+insert into workshops (id, sort_order, meta, title, text)
 values
 (
   'batik', 1,
-  $${"image": "https://images.unsplash.com/photo-1721361467569-f8edbf851f44?q=80&w=1200&auto=format&fit=crop", "alt": "Artisan hand-drawing wax batik onto cloth"}$$,
   $$Craft · ~2 hours$$, $$Batik Class$$,
   $$Learn the wax-and-dye technique behind Java's best-known textile art, guided by a local artisan — from sketch to a finished cloth of your own.$$
 ),
 (
   'pottery', 2,
-  $${"image": "https://images.unsplash.com/photo-1753164726043-31e583f8a9b8?q=80&w=1200&auto=format&fit=crop", "alt": "Hands shaping clay on a pottery wheel"}$$,
   $$Craft · ~2 hours$$, $$Pottery Workshop$$,
   $$Get your hands into local clay and shape your own piece on the wheel — no experience needed, just patience and a willingness to get a little muddy.$$
 ),
 (
   'silver', 3,
-  $${"image": "https://images.unsplash.com/photo-1715374033196-0ff662284a7e?q=80&w=1200&auto=format&fit=crop", "alt": "Craftsperson at work on a piece of jewellery"}$$,
   $$Craft · ~2 hours$$, $$Silver Jewellery Making$$,
   $$Design and make your own ring, earrings or pendant with a local silversmith, using the traditional techniques of nearby workshops — yours to take home.$$
 ),
 (
   'gamelan', 4,
-  $${"image": "https://images.unsplash.com/photo-1745575358033-315414a79595?q=80&w=1200&auto=format&fit=crop", "alt": "Traditional Javanese gamelan instruments"}$$,
   $$Craft · ~1.5 hours$$, $$Gamelan Class$$,
   $$Try your hand at gong, kenong and gambang with a local gamelan group, and learn the basics of Java's centuries-old orchestral tradition.$$
 );
@@ -344,3 +293,68 @@ values
 ('12', 12, $$Garden pavilion & celebrations$$, $$Reunions, community retreats and small garden weddings hosted in our pavilion and lawn — ask for a walkthrough.$$),
 ('13', 13, $$24-hour local hosting$$, $$The family lives on-site — someone is always around for questions, big or small.$$),
 ('14', 14, $$Travel desk$$, $$Train, bus and driver bookings onward to Yogyakarta, Solo, or the Dieng Plateau.$$);
+
+-- ============================================================
+-- IMAGES (room/activity hero + thumbs, workshop photos, curated galleries)
+-- ============================================================
+delete from images where section in ('room','activity','workshop','home_gallery','facility_gallery');
+
+insert into images (section, entity_key, role, sort_order, image, alt)
+values
+-- Rooms — hero
+('room', 'joglo', 'hero', 0, $$https://images.unsplash.com/photo-1584132905271-512c958d674a?q=80&w=1800&auto=format&fit=crop$$, $$Joglo Heritage Suite bedroom with white linen$$),
+('room', 'garden', 'hero', 0, $$https://images.unsplash.com/photo-1754597302822-4b96f3442d3f?q=80&w=1800&auto=format&fit=crop$$, $$Garden View Room cozy interior$$),
+('room', 'cottage', 'hero', 0, $$https://plus.unsplash.com/premium_photo-1697730050329-e11a8eb63c69?q=80&w=1800&auto=format&fit=crop$$, $$Family Cottage beside the rice terrace$$),
+('room', 'rooftop', 'hero', 0, $$https://images.unsplash.com/photo-1620549146396-9024d914cd99?q=80&w=1800&auto=format&fit=crop$$, $$View of Borobudur Temple from the rooftop terrace$$),
+
+-- Rooms — thumbs
+('room', 'joglo', 'thumb', 0, $$https://images.unsplash.com/photo-1759223607861-f0ef3e617739?q=80&w=1200&auto=format&fit=crop$$, $$Ensuite bathroom$$),
+('room', 'joglo', 'thumb', 1, $$https://images.unsplash.com/photo-1631340729644-8b8aad1e9dba?q=80&w=1200&auto=format&fit=crop$$, $$View toward Borobudur Temple$$),
+('room', 'joglo', 'thumb', 2, $$https://images.unsplash.com/photo-1754597302822-4b96f3442d3f?q=80&w=1200&auto=format&fit=crop$$, $$Reading corner$$),
+('room', 'garden', 'thumb', 0, $$https://images.unsplash.com/photo-1780283574760-e8d7fd944da5?q=80&w=1200&auto=format&fit=crop$$, $$Pool garden outside the room$$),
+('room', 'garden', 'thumb', 1, $$https://images.unsplash.com/photo-1759223607861-f0ef3e617739?q=80&w=1200&auto=format&fit=crop$$, $$Bathroom detail$$),
+('room', 'cottage', 'thumb', 0, $$https://images.unsplash.com/photo-1584132905271-512c958d674a?q=80&w=1200&auto=format&fit=crop$$, $$Master bedroom in the cottage$$),
+('room', 'cottage', 'thumb', 1, $$https://images.unsplash.com/photo-1754597302822-4b96f3442d3f?q=80&w=1200&auto=format&fit=crop$$, $$Second bedroom$$),
+('room', 'cottage', 'thumb', 2, $$https://images.unsplash.com/photo-1780283574760-e8d7fd944da5?q=80&w=1200&auto=format&fit=crop$$, $$Shared garden and pool nearby$$),
+('room', 'rooftop', 'thumb', 0, $$https://images.unsplash.com/photo-1591674585153-ca78d0339b09?q=80&w=1200&auto=format&fit=crop$$, $$Sunrise silhouette from the rooftop$$),
+('room', 'rooftop', 'thumb', 1, $$https://images.unsplash.com/photo-1759223607861-f0ef3e617739?q=80&w=1200&auto=format&fit=crop$$, $$Ensuite bathroom$$),
+
+-- Activities — hero
+('activity', 'horse-riding', 'hero', 0, $$https://images.unsplash.com/photo-1546700990-7b6416f2d90c?q=80&w=1800&auto=format&fit=crop$$, $$Rider on a brown horse in open country$$),
+('activity', 'andong-tour', 'hero', 0, $$https://images.unsplash.com/photo-1721048061987-d4b37f6ec11b?q=80&w=1800&auto=format&fit=crop$$, $$Horse-drawn cart travelling a quiet country road$$),
+('activity', 'vw-tour', 'hero', 0, $$https://images.unsplash.com/photo-1619021977849-f802cdcabc76?q=80&w=1800&auto=format&fit=crop$$, $$Classic white Volkswagen on a tree-lined dirt road$$),
+('activity', 'atv', 'hero', 0, $$https://images.unsplash.com/photo-1506797848948-339596317992?q=80&w=1800&auto=format&fit=crop$$, $$Rider kicking up dust on an ATV quad bike$$),
+('activity', 'rafting', 'hero', 0, $$https://images.unsplash.com/photo-1599443380179-33737c17ca81?q=80&w=1800&auto=format&fit=crop$$, $$Group paddling a raft down river rapids$$),
+
+-- Activities — thumbs
+('activity', 'horse-riding', 'thumb', 0, $$https://images.unsplash.com/photo-1609128231746-356e747a53bc?q=80&w=1200&auto=format&fit=crop$$, $$Guided ride along a quiet country road$$),
+('activity', 'horse-riding', 'thumb', 1, $$https://images.unsplash.com/photo-1633767979501-6225d151ba70?q=80&w=1200&auto=format&fit=crop$$, $$Golden-hour ride at the end of the day$$),
+('activity', 'andong-tour', 'thumb', 0, $$https://plus.unsplash.com/premium_photo-1697730050329-e11a8eb63c69?q=80&w=1200&auto=format&fit=crop$$, $$Rice paddies along the andong route$$),
+('activity', 'andong-tour', 'thumb', 1, $$https://images.unsplash.com/photo-1546700990-7b6416f2d90c?q=80&w=1200&auto=format&fit=crop$$, $$Horse resting in the village$$),
+('activity', 'vw-tour', 'thumb', 0, $$https://images.unsplash.com/photo-1761231558155-8bd3812a681a?q=80&w=1200&auto=format&fit=crop$$, $$Vintage Volkswagen driving a scenic countryside road$$),
+('activity', 'vw-tour', 'thumb', 1, $$https://plus.unsplash.com/premium_photo-1697730050329-e11a8eb63c69?q=80&w=1200&auto=format&fit=crop$$, $$Rice terraces along the tour route$$),
+('activity', 'atv', 'thumb', 0, $$https://plus.unsplash.com/premium_photo-1697730050329-e11a8eb63c69?q=80&w=1200&auto=format&fit=crop$$, $$Rice paddies crossed on the ATV route$$),
+('activity', 'atv', 'thumb', 1, $$https://images.unsplash.com/photo-1631340729644-8b8aad1e9dba?q=80&w=1200&auto=format&fit=crop$$, $$Borobudur Temple, one of the route's photo stops$$),
+('activity', 'rafting', 'thumb', 0, $$https://images.unsplash.com/photo-1641584495089-5914d85d9bcc?q=80&w=1200&auto=format&fit=crop$$, $$Rafting team paddling through white water$$),
+('activity', 'rafting', 'thumb', 1, $$https://images.unsplash.com/photo-1760904652241-36ad6b4e752f?q=80&w=1200&auto=format&fit=crop$$, $$Raft manoeuvring past rocks in the rapids$$),
+('activity', 'rafting', 'thumb', 2, $$https://images.unsplash.com/photo-1629248457649-b082812aea6c?q=80&w=1200&auto=format&fit=crop$$, $$Paddlers on calm water between rapids$$),
+
+-- Workshops — media
+('workshop', 'batik', 'media', 0, $$https://images.unsplash.com/photo-1721361467569-f8edbf851f44?q=80&w=1200&auto=format&fit=crop$$, $$Artisan hand-drawing wax batik onto cloth$$),
+('workshop', 'pottery', 'media', 0, $$https://images.unsplash.com/photo-1753164726043-31e583f8a9b8?q=80&w=1200&auto=format&fit=crop$$, $$Hands shaping clay on a pottery wheel$$),
+('workshop', 'silver', 'media', 0, $$https://images.unsplash.com/photo-1715374033196-0ff662284a7e?q=80&w=1200&auto=format&fit=crop$$, $$Craftsperson at work on a piece of jewellery$$),
+('workshop', 'gamelan', 'media', 0, $$https://images.unsplash.com/photo-1745575358033-315414a79595?q=80&w=1200&auto=format&fit=crop$$, $$Traditional Javanese gamelan instruments$$),
+
+-- Home page curated gallery ("A Small Taste")
+('home_gallery', null, 'gallery', 0, $$https://images.unsplash.com/photo-1591674585153-ca78d0339b09?q=80&w=1400&auto=format&fit=crop$$, $$Borobudur Temple sunrise$$),
+('home_gallery', null, 'gallery', 1, $$https://images.unsplash.com/photo-1584132905271-512c958d674a?q=80&w=1400&auto=format&fit=crop$$, $$Bedroom interior$$),
+('home_gallery', null, 'gallery', 2, $$https://images.unsplash.com/photo-1759223607861-f0ef3e617739?q=80&w=1400&auto=format&fit=crop$$, $$Bathroom detail$$),
+('home_gallery', null, 'gallery', 3, $$https://images.unsplash.com/photo-1780283574760-e8d7fd944da5?q=80&w=1400&auto=format&fit=crop$$, $$Garden swimming pool$$),
+('home_gallery', null, 'gallery', 4, $$https://images.unsplash.com/photo-1754617438035-712ddf5500ef?q=80&w=1400&auto=format&fit=crop$$, $$Traditional Indonesian breakfast$$),
+
+-- Facility page curated gallery ("In Pictures")
+('facility_gallery', null, 'gallery', 0, $$https://images.unsplash.com/photo-1780283574760-e8d7fd944da5?q=80&w=1400&auto=format&fit=crop$$, $$Garden pool$$),
+('facility_gallery', null, 'gallery', 1, $$https://images.unsplash.com/photo-1754617438035-712ddf5500ef?q=80&w=1400&auto=format&fit=crop$$, $$Home-cooked breakfast tray$$),
+('facility_gallery', null, 'gallery', 2, $$https://images.unsplash.com/photo-1571456803038-80efbf5c9d6b?q=80&w=1400&auto=format&fit=crop$$, $$Kolam Kungkum wooden soaking tub$$),
+('facility_gallery', null, 'gallery', 3, $$https://images.unsplash.com/photo-1591674585153-ca78d0339b09?q=80&w=1400&auto=format&fit=crop$$, $$Sunrise temple tour$$),
+('facility_gallery', null, 'gallery', 4, $$https://images.unsplash.com/photo-1566559532224-6d65e9fc0f37?q=80&w=1400&auto=format&fit=crop$$, $$Borobudur Temple morning light$$);

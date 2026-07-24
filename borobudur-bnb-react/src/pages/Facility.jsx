@@ -17,14 +17,6 @@ const MEETING_ROWS = [
   ['Add-ons', 'Extra projector Rp 300.000 · extra sound system Rp 150.000 · extra power/generator Rp 200.000'],
 ];
 
-const GALLERY_ITEMS = [
-  { id: 'photo-1780283574760-e8d7fd944da5', alt: 'Garden pool', thumbW: 900 },
-  { id: 'photo-1754617438035-712ddf5500ef', alt: 'Home-cooked breakfast tray', thumbW: 800 },
-  { id: 'photo-1571456803038-80efbf5c9d6b', alt: 'Kolam Kungkum wooden soaking tub', thumbW: 700 },
-  { id: 'photo-1591674585153-ca78d0339b09', alt: 'Sunrise temple tour', thumbW: 800 },
-  { id: 'photo-1566559532224-6d65e9fc0f37', alt: 'Borobudur Temple morning light', thumbW: 1100 },
-];
-
 const FAQ_ITEMS = [
   { q: 'Is the sunrise tour really free?', a: "Yes — the guided walk and our guide's time are included with every room. You only pay the official Borobudur Temple entry ticket at the gate." },
   { q: 'What time is breakfast served?', a: "6:30 am – 10 am at the joglo pavilion. If you're on the 04:15 sunrise tour, we keep a plate warm for when you return around 7 am." },
@@ -37,7 +29,7 @@ const FAQ_ITEMS = [
 export default function Facility() {
   useDocumentTitle('Facilities — Borobudur BnB, Magelang');
   const { rows } = useContent();
-  const { facilities } = rows;
+  const { facilities, facilityGallery } = rows;
 
   return (
     <>
@@ -198,7 +190,7 @@ export default function Facility() {
             </p>
             <h2>A look around the property</h2>
           </Reveal>
-          <Gallery items={GALLERY_ITEMS} />
+          <Gallery items={facilityGallery} section="facility_gallery" />
         </div>
       </section>
 
