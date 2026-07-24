@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
 import AdminProducts from "./pages/admin/AdminProducts.jsx";
 import AdminProductEditor from "./pages/admin/AdminProductEditor.jsx";
+import AdminContent from "./pages/admin/AdminContent.jsx";
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
       <Route path="admin" element={<AdminLayout />}>
         <Route index element={<AdminProducts />} />
         <Route path="products/:id" element={<AdminProductEditor />} />
+        <Route path="content" element={<AdminContent />} />
       </Route>
     </Routes>
   );

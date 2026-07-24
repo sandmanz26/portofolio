@@ -21,7 +21,7 @@ export const SITE = {
   hours: ["Monday – Saturday, 9am – 5pm", "Sunday, 10am – 3pm"],
 };
 
-export function whatsappLink(message) {
-  const base = "https://wa.me/" + SITE.whatsappNumber;
+export function whatsappLink(message, number = SITE.whatsappNumber) {
+  const base = "https://wa.me/" + number;
   return message ? base + "?text=" + encodeURIComponent(message) : base;
 }

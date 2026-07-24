@@ -2,15 +2,19 @@
 
 Website for Borobudur Home Furniture — a solid wood furniture manufacturer in
 Yogyakarta, established 2016. Built with **React 18 + React Router**, bundled
-by **Vite**. Product data lives behind a small set of async functions in
-`src/data/products.js`, which automatically dispatch to one of two backends:
+by **Vite**. Two things are editable from `/admin` without touching code:
+the product catalog (`src/data/products.js`) and the editorial copy on
+Home/Catalog/Contact plus contact details (`src/data/content.js`). Both use
+the same dual-backend pattern and automatically dispatch to one of two
+backends:
 
 - **No Supabase configured** (default, zero setup): reads/writes a
-  `localStorage` copy of the catalog, and `/admin` is guarded by a plain
-  passphrase. This is what you get out of the box.
-- **Supabase configured**: reads/writes the real `products` table, gallery
-  uploads go to Supabase Storage, and `/admin` is guarded by real Supabase
-  Auth (email/password) instead of a passphrase.
+  `localStorage` copy of the catalog and content, and `/admin` is guarded by
+  a plain passphrase. This is what you get out of the box.
+- **Supabase configured**: reads/writes the real `products` and
+  `site_content` tables, gallery uploads go to Supabase Storage, and
+  `/admin` is guarded by real Supabase Auth (email/password) instead of a
+  passphrase.
 
 The switch is automatic and based on whether `VITE_SUPABASE_URL` /
 `VITE_SUPABASE_ANON_KEY` are set — no page or admin component needs to
@@ -26,6 +30,7 @@ change either way. See "Moving to Supabase" below for the exact steps.
 | `/contact`          | `src/pages/Contact.jsx`         | Showroom info + a form that opens WhatsApp with a pre-written message  |
 | `/admin`            | `src/pages/admin/AdminProducts.jsx` | Product list with inline editing (see "Admin panel" below)         |
 | `/admin/products/:id` | `src/pages/admin/AdminProductEditor.jsx` | Full product editor + gallery manager                     |
+| `/admin/content`     | `src/pages/admin/AdminContent.jsx` | Editorial content editor for Home/Catalog/Contact + site settings   |
 | anything else        | `src/pages/NotFound.jsx`        | 404                                                                     |
 
 ## Structure
@@ -35,15 +40,26 @@ src/
   main.jsx              entry point, mounts <App /> inside a BrowserRouter
   App.jsx                route table
   components/            Header, Footer, Layout (public shell), ProductCard
-    admin/                InlineText, InlineSelect, GalleryEditor
+    admin/                InlineText, InlineSelect, GalleryEditor,
+                          ArrayFieldEditor, StringListEditor
+  context/
+    ContentContext.jsx     loads all site content once, provides it to every
+                            public page via useContent()
   hooks/useReveal.js       scroll-reveal animation hook
   pages/                   one file per public route
     admin/                 AdminLayout (passphrase OR Supabase Auth gate + shell),
-                            AdminProducts, AdminProductEditor
+                            AdminProducts, AdminProductEditor, AdminContent
   data/
     products.js            product data + fetch/create/update/delete functions —
                             dispatches to localStorage or Supabase automatically
-    site.js                 brand name, address, phone, WhatsApp helper
+    content.js              editorial content (Home/Catalog/Contact copy + site
+                            settings) — same dispatch pattern as products.js
+    contentSchema.js         describes the fields AdminContent.jsx renders per
+                            content section (tabs, labels, field types) —
+                            a UI concern only, content.js doesn't know it exists
+    site.js                 default brand/address/phone (seeds content.js's
+                            site_settings section; still used directly by
+                            Header/Footer)
     adminAuth.js             TEMPORARY admin passphrase, only used pre-Supabase
   lib/
     supabaseClient.js         Supabase client + isSupabaseConfigured flag
@@ -59,8 +75,8 @@ public/
   robots.txt                 disallows /admin from search engines
 supabase/
   schema.sql                 run this once in the Supabase SQL Editor — creates
-                              the products table, RLS policies, storage bucket
-                              + policies, and the 12 demo products
+                              the products + site_content tables, RLS policies,
+                              storage bucket + policies, and all default data
 vercel.json                 SPA rewrite for Vercel previews (same purpose as
                              .htaccess, different host — see "Deploying" below)
 .env.example                 copy to .env.local and fill in to enable Supabase
@@ -107,6 +123,30 @@ Visit `/admin` (e.g. `http://localhost:5173/admin`).
   - A live preview of the product card sits alongside the form.
 - **Delete product**: at the bottom of the editor, or from the list table.
 
+### Content editor (`/admin/content`)
+
+Everything editorial on Home, Catalog and Contact — headings, paragraphs,
+button labels, the four value cards, the "years of craft" facts, the hero
+meta strip, product-range descriptions, and site-wide contact details
+(phone, email, address, hours) — is editable here, grouped into four tabs:
+**Home**, **Catalog**, **Contact**, **Site Settings**. The public pages read
+this content through `useContent()` (`src/context/ContentContext.jsx`),
+which loads it once and provides it to every page — edit it in `/admin/content`,
+then reload the public page (or navigate to it) to see the change.
+
+- Every field uses the same inline-save pattern as the product editor: type,
+  click away, it's saved — no Save button, a green flash confirms it.
+- List fields (the hero meta strip, opening hours, value cards, facts,
+  product-range lines) have their own small editor: type into any item,
+  reorder with the arrow buttons, **Remove** to delete one, or the **+ Add**
+  button to append a new one — commits happen on blur, same as everything
+  else.
+- **Reset to default** sits at the top of each section and reverts just that
+  section (not the whole page) to the original copy the site ships with.
+- Changing **Site Settings** → WhatsApp number also updates the WhatsApp
+  links on the Contact page and homepage contact strip, since both read the
+  number from there rather than a hardcoded value.
+
 ### Where edits are stored right now
 
 Without Supabase configured, admin edits (including uploaded photos, as data
@@ -133,12 +173,12 @@ manages real inventory.
 
 ## Moving to Supabase
 
-All product reads/writes already go through one file, `src/data/products.js`,
-which automatically switches from the `localStorage` backend to a Supabase
-backend as soon as `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set.
-The gallery uploader (`GalleryEditor.jsx`) and the admin gate
-(`AdminLayout.jsx`) do the same. Nothing else needs to change — follow these
-steps:
+Product reads/writes go through `src/data/products.js`, and content
+reads/writes go through `src/data/content.js` — both automatically switch
+from their `localStorage` backend to Supabase as soon as `VITE_SUPABASE_URL`
+and `VITE_SUPABASE_ANON_KEY` are set. The gallery uploader
+(`GalleryEditor.jsx`) and the admin gate (`AdminLayout.jsx`) do the same.
+Nothing else needs to change — follow these steps:
 
 ### 1. Create a Supabase project
 
@@ -153,11 +193,14 @@ entire contents of **`supabase/schema.sql`** from this repo, and click
 **Run**. This one script creates:
 
 - the `products` table with the columns the app expects
-- Row Level Security policies: anyone can read, only signed-in
-  (`authenticated`) users can insert/update/delete
+- the `site_content` table (one row per content section — `home_hero`,
+  `home_about`, `contact_cta`, `site_settings`, etc.)
+- Row Level Security policies on both tables: anyone can read, only
+  signed-in (`authenticated`) users can insert/update/delete
 - the `product-photos` Storage bucket, public-read / authenticated-write
-- the same 12 demo products the site already ships with, so it looks
-  identical right after switching over
+- the same 12 demo products, and the same default copy for every content
+  section, that the site already ships with — so it looks identical right
+  after switching over
 
 It's safe to re-run if it fails partway through (every statement uses
 `if not exists` / `drop ... if exists` / `on conflict do nothing`).
@@ -213,13 +256,14 @@ Once deployed (or in `npm run dev` locally) with the env vars set:
 - The public site should look unchanged — it now reads from Supabase.
 - Visiting `/admin` should show an email/password sign-in form instead of
   the passphrase prompt. Sign in with the account from step 3.
-- Try editing a product, adding a photo, and reloading — changes should
-  persist (they're in the real database and bucket now, not
-  `localStorage`).
+- Try editing a product, adding a photo, editing something in
+  `/admin/content`, and reloading — changes should persist (they're in the
+  real database and bucket now, not `localStorage`).
 
-If something doesn't load, check the browser console — `products.js`
-surfaces Supabase/Postgres errors (e.g. a missing table, or an RLS policy
-blocking a write) as thrown `Error`s with the original message.
+If something doesn't load, check the browser console — `products.js` and
+`content.js` both surface Supabase/Postgres errors (e.g. a missing table, or
+an RLS policy blocking a write) as thrown `Error`s with the original
+message.
 
 ## Deploying
 

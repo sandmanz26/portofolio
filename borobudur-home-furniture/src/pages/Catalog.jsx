@@ -4,10 +4,14 @@ import ProductCard from "../components/ProductCard.jsx";
 import useReveal from "../hooks/useReveal.js";
 import { CATEGORIES, fetchProducts } from "../data/products.js";
 import { SITE } from "../data/site.js";
+import { useContent } from "../context/ContentContext.jsx";
 
 export default function Catalog() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState([]);
+  const content = useContent();
+  const hero = content.catalog_hero;
+  const cta = content.catalog_cta;
 
   const categoryParam = searchParams.get("category");
   const category = CATEGORIES.includes(categoryParam) ? categoryParam : "All";
@@ -20,7 +24,7 @@ export default function Catalog() {
     fetchProducts(category).then(setProducts);
   }, [category]);
 
-  useReveal([products]);
+  useReveal([products, content]);
 
   function selectCategory(cat) {
     setSearchParams(cat === "All" ? {} : { category: cat });
@@ -30,13 +34,9 @@ export default function Catalog() {
     <>
       <section className="page-hero">
         <div className="container">
-          <p className="eyebrow">Catalog</p>
-          <h1 className="page-hero__title">The collection.</h1>
-          <p className="lead">
-            Every piece is made in our Yogyakarta workshop from selected solid
-            wood. In-stock pieces can leave the showroom with you today; the rest
-            are made to order.
-          </p>
+          <p className="eyebrow">{hero.eyebrow}</p>
+          <h1 className="page-hero__title">{hero.title}</h1>
+          <p className="lead">{hero.paragraph}</p>
         </div>
       </section>
 
@@ -71,12 +71,10 @@ export default function Catalog() {
 
       <section className="section section--dark">
         <div className="container cta-band reveal">
-          <p className="eyebrow">Can't find the right fit?</p>
-          <h2 className="section-title">We also build custom furniture.</h2>
-          <p className="lead">
-            Dimensions, timber and finish — every detail tailored to your space.
-          </p>
-          <Link className="btn btn--inverse" to="/contact">Custom Consultation</Link>
+          <p className="eyebrow">{cta.eyebrow}</p>
+          <h2 className="section-title">{cta.title}</h2>
+          <p className="lead">{cta.paragraph}</p>
+          <Link className="btn btn--inverse" to="/contact">{cta.buttonLabel}</Link>
         </div>
       </section>
     </>

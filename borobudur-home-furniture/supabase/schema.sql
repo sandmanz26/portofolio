@@ -14,6 +14,13 @@
 --                              users can upload/update/delete
 --   5. The 12 demo products, so the site looks identical to the
 --      localStorage version immediately after switching over
+--   6. public.site_content   — editorial copy for Home/Catalog/
+--                              Contact and site-wide contact details,
+--                              edited from /admin/content
+--   7. Row Level Security for site_content — same public-read,
+--      authenticated-write pattern as products
+--   8. The default copy for all 12 content sections, matching what
+--      the site shows out of the box
 --
 -- After running this, follow the rest of README.md's "Moving to
 -- Supabase" section: create an admin user under Authentication,
@@ -145,3 +152,73 @@ values
   ('laksmana-sideboard', 'Laksmana Sideboard', 'Storage', 7800000, '["https://images.unsplash.com/photo-1616046229478-9901c5536a45?q=80&w=1200&auto=format&fit=crop"]'::jsonb, 'New', true, 'A long, low three-door sideboard with quiet horizontal lines.', 'Laksmana runs long and low — a three-door sideboard with adjustable shelving behind every door. Equally at home as a dining-room credenza or a media cabinet in the living room.', '180 × 45 × 75 cm', 'Solid teak & teak veneer', 'Natural matte / Walnut dark', 'In stock & made to order'),
   ('drupadi-stool', 'Drupadi Stool', 'Seating', 1450000, '["https://images.unsplash.com/photo-1503602642458-232111445657?q=80&w=1200&auto=format&fit=crop"]'::jsonb, NULL, false, 'A solid-wood stool that works anywhere in the house.', 'Drupadi is a simple solid-wood stool with through-tenon joinery — extra seating at the dining table, a bedside perch, or a stand for a favourite plant. Simple objects, done properly, last the longest.', '38 × 38 × 45 cm', 'Solid teak', 'Natural matte', 'In stock at our showroom')
 on conflict (id) do nothing;
+
+
+-- 6. Site content table -----------------------------------------
+-- One row per "section" (home_hero, home_about, contact_cta, etc.)
+-- holding that section's fields as jsonb. See src/data/content.js
+-- for the exact shape of each section's content, and
+-- src/data/contentSchema.js for how /admin/content renders them.
+
+create table if not exists public.site_content (
+  key text primary key,
+  content jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now()
+);
+
+drop trigger if exists set_site_content_updated_at on public.site_content;
+create trigger set_site_content_updated_at
+before update on public.site_content
+for each row execute function public.set_updated_at();
+
+
+-- 7. Row Level Security for site_content ---------------------------
+-- Same pattern as products: public reads, only signed-in
+-- (authenticated) users write.
+
+alter table public.site_content enable row level security;
+
+drop policy if exists "Public can read site content" on public.site_content;
+create policy "Public can read site content"
+  on public.site_content for select
+  using (true);
+
+drop policy if exists "Authenticated users can insert site content" on public.site_content;
+create policy "Authenticated users can insert site content"
+  on public.site_content for insert
+  to authenticated
+  with check (true);
+
+drop policy if exists "Authenticated users can update site content" on public.site_content;
+create policy "Authenticated users can update site content"
+  on public.site_content for update
+  to authenticated
+  using (true)
+  with check (true);
+
+drop policy if exists "Authenticated users can delete site content" on public.site_content;
+create policy "Authenticated users can delete site content"
+  on public.site_content for delete
+  to authenticated
+  using (true);
+
+
+-- 8. Default content ------------------------------------------------
+-- The same copy the site ships with, so nothing looks empty or
+-- reverts to placeholder text immediately after switching over.
+
+insert into public.site_content (key, content)
+values
+  ('home_hero', '{"eyebrow":"Est. 2016 — Yogyakarta","title":"Solid wood,","titleEmphasis":"made to last.","ctaLabel":"Explore the Collection","backgroundImage":"https://images.unsplash.com/photo-1549497538-303791108f95?q=80&w=2000&auto=format&fit=crop","metaItems":["Grade-A Teak","Ready Stock & Custom","Showroom in Yogyakarta"]}'::jsonb),
+  ('home_about', '{"eyebrow":"About Us","title":"A decade of working wood, patiently.","paragraph1":"Founded in 2016 in Yogyakarta, Borobudur Home Furniture grew from a small workshop into a manufacturer with its own showroom. Wood is where we are strongest: we select, dry, cut and join every board ourselves.","paragraph2":"Visit the showroom and take a ready-made piece home the same day — or sit down with our team and have something custom built precisely for your space.","image":"https://images.unsplash.com/photo-1611021061285-16c871740efa?q=80&w=1200&auto=format&fit=crop","facts":[{"number":"10","label":"Years of Craft"},{"number":"500+","label":"Custom Projects"},{"number":"1","label":"Showroom in Jogja"}]}'::jsonb),
+  ('home_values', '{"eyebrow":"What We Stand On","title":"Wood first. Everything else follows.","items":[{"title":"Solid Wood, No Shortcuts","desc":"Grade-A Javanese teak and mahogany, kiln-dried in-house to below 12% moisture so every piece stays true for decades."},{"title":"Honest Joinery","desc":"Mortise-and-tenon joints cut by hand, the way Javanese carpenters have built for generations. Screws are a last resort, never the structure."},{"title":"Responsibly Sourced","desc":"Timber from legal, plantation-grown Javanese forests — traceable from the log yard to your living room."},{"title":"Built Beyond Trends","desc":"Quiet designs and a 10-year structural guarantee. Furniture you keep, repair, and hand down — not replace."}]}'::jsonb),
+  ('home_range', '{"eyebrow":"Product Range","title":"Four lines, one design language.","items":[{"category":"Seating","desc":"Lounge chairs, dining chairs, sofas and stools on solid teak frames."},{"category":"Tables","desc":"Dining and coffee tables cut from single teak boards."},{"category":"Bedroom","desc":"Beds, nightstands and wardrobes with calm, quiet lines."},{"category":"Storage","desc":"Sideboards, consoles and shelving that keep things in order."}]}'::jsonb),
+  ('home_featured', '{"eyebrow":"Featured","title":"Selected pieces from the showroom."}'::jsonb),
+  ('home_cta', '{"eyebrow":"Custom Furniture","title":"Have your own size or design? We build it.","paragraph":"From a single chair to furnishing an entire home — tell us what you need and our team will walk with you from sketch to installation.","buttonLabel":"Start a Consultation"}'::jsonb),
+  ('home_contact', '{"eyebrow":"Contact Us","title":"Visit our showroom in Yogyakarta.","paragraph":"Feel the grain and the weight of the joinery for yourself. The showroom is open every day, and our team is happy to help you choose.","buttonLabel":"Contact & Directions"}'::jsonb),
+  ('catalog_hero', '{"eyebrow":"Catalog","title":"The collection.","paragraph":"Every piece is made in our Yogyakarta workshop from selected solid wood. In-stock pieces can leave the showroom with you today; the rest are made to order."}'::jsonb),
+  ('catalog_cta', '{"eyebrow":"Can''t find the right fit?","title":"We also build custom furniture.","paragraph":"Dimensions, timber and finish — every detail tailored to your space.","buttonLabel":"Custom Consultation"}'::jsonb),
+  ('contact_hero', '{"eyebrow":"Contact Us","title":"Let''s talk.","paragraph":"Ask about availability, book a showroom visit, or start a custom furniture consultation. We usually reply within one working day."}'::jsonb),
+  ('contact_cta', '{"eyebrow":"Since 2016","title":"Ten years, one standard: honest handwork.","paragraph":"Visit the showroom and judge the quality with your own hands.","buttonLabel":"View the Collection"}'::jsonb),
+  ('site_settings', '{"tagline":"Borobudur Home Furniture — solid wood furniture manufacturer in Yogyakarta since 2016.","whatsappNumber":"6281227160160","whatsappDisplay":"+62 812-2716-0160","email":"hello@borobudurhomefurniture.com","addressStreet":"Jl. Parangtritis Km 6.5, Sewon","addressCity":"Bantul, Yogyakarta 55188","addressMapsUrl":"https://maps.google.com/?q=Jl.+Parangtritis+Km+6.5+Sewon+Bantul+Yogyakarta","hours":["Monday – Saturday, 9am – 5pm","Sunday, 10am – 3pm"]}'::jsonb)
+on conflict (key) do nothing;

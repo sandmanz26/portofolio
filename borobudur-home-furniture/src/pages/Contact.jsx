@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import useReveal from "../hooks/useReveal.js";
 import { SITE, whatsappLink } from "../data/site.js";
+import { useContent } from "../context/ContentContext.jsx";
 
 const SUBJECTS = [
   "A ready-stock piece",
@@ -12,12 +13,16 @@ const SUBJECTS = [
 
 export default function Contact() {
   const [status, setStatus] = useState("");
+  const content = useContent();
+  const hero = content.contact_hero;
+  const cta = content.contact_cta;
+  const site = content.site_settings;
 
   useEffect(() => {
     document.title = `Contact Us — ${SITE.name}`;
   }, []);
 
-  useReveal();
+  useReveal([content]);
 
   function handleSubmit(event) {
     event.preventDefault();
@@ -31,7 +36,7 @@ export default function Contact() {
       "",
       `Contact: ${data.get("email")}${data.get("phone") ? " / " + data.get("phone") : ""}`,
     ];
-    window.open(whatsappLink(lines.join("\n")), "_blank", "noopener");
+    window.open(whatsappLink(lines.join("\n"), site.whatsappNumber), "_blank", "noopener");
     setStatus(
       `Thank you, ${data.get("name")}. Your message is opening in WhatsApp — ` +
         "our team usually replies within one working day."
@@ -43,12 +48,9 @@ export default function Contact() {
     <>
       <section className="page-hero">
         <div className="container">
-          <p className="eyebrow">Contact Us</p>
-          <h1 className="page-hero__title">Let's talk.</h1>
-          <p className="lead">
-            Ask about availability, book a showroom visit, or start a custom
-            furniture consultation. We usually reply within one working day.
-          </p>
+          <p className="eyebrow">{hero.eyebrow}</p>
+          <h1 className="page-hero__title">{hero.title}</h1>
+          <p className="lead">{hero.paragraph}</p>
         </div>
       </section>
 
@@ -59,12 +61,12 @@ export default function Contact() {
               <div className="contact-block">
                 <h3>Showroom &amp; Workshop</h3>
                 <p>
-                  {SITE.address.street},<br />
-                  {SITE.address.city}<br />
+                  {site.addressStreet},<br />
+                  {site.addressCity}<br />
                   <a
                     className="link-arrow"
                     style={{ marginTop: "0.9rem" }}
-                    href={SITE.address.mapsUrl}
+                    href={site.addressMapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -75,22 +77,22 @@ export default function Contact() {
               <div className="contact-block">
                 <h3>Opening Hours</h3>
                 <p>
-                  {SITE.hours[0]}<br />
-                  {SITE.hours[1]}
+                  {site.hours[0]}<br />
+                  {site.hours[1]}
                 </p>
               </div>
               <div className="contact-block">
                 <h3>Phone &amp; WhatsApp</h3>
                 <p>
-                  <a href={whatsappLink()} target="_blank" rel="noopener noreferrer">
-                    {SITE.whatsappDisplay}
+                  <a href={whatsappLink(undefined, site.whatsappNumber)} target="_blank" rel="noopener noreferrer">
+                    {site.whatsappDisplay}
                   </a>
                 </p>
               </div>
               <div className="contact-block">
                 <h3>Email</h3>
                 <p>
-                  <a href={"mailto:" + SITE.email}>{SITE.email}</a>
+                  <a href={"mailto:" + site.email}>{site.email}</a>
                 </p>
               </div>
             </div>
@@ -148,10 +150,10 @@ export default function Contact() {
 
       <section className="section section--dark">
         <div className="container cta-band reveal">
-          <p className="eyebrow">Since 2016</p>
-          <h2 className="section-title">Ten years, one standard: honest handwork.</h2>
-          <p className="lead">Visit the showroom and judge the quality with your own hands.</p>
-          <Link className="btn btn--inverse" to="/catalog">View the Collection</Link>
+          <p className="eyebrow">{cta.eyebrow}</p>
+          <h2 className="section-title">{cta.title}</h2>
+          <p className="lead">{cta.paragraph}</p>
+          <Link className="btn btn--inverse" to="/catalog">{cta.buttonLabel}</Link>
         </div>
       </section>
     </>

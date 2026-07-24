@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { ADMIN_PASSPHRASE } from "../../data/adminAuth.js";
 import { supabase, isSupabaseConfigured } from "../../lib/supabaseClient.js";
 import "../../styles/admin.css";
@@ -11,6 +11,14 @@ function AdminShell({ onLogout }) {
     <div className="admin">
       <header className="admin-topbar">
         <Link to="/admin" className="admin-topbar__brand">BHF Admin</Link>
+        <nav className="admin-topbar__section-nav">
+          <NavLink to="/admin" end className={({ isActive }) => (isActive ? "is-active" : undefined)}>
+            Products
+          </NavLink>
+          <NavLink to="/admin/content" className={({ isActive }) => (isActive ? "is-active" : undefined)}>
+            Site Content
+          </NavLink>
+        </nav>
         <nav className="admin-topbar__nav">
           <Link to="/" target="_blank" rel="noopener noreferrer">View site &#8599;</Link>
           <button type="button" onClick={onLogout}>Log out</button>
