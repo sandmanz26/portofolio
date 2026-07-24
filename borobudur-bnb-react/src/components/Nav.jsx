@@ -5,6 +5,7 @@ import { NAV_LINKS, SITE } from '../data/site';
 import { BrandMark, IconClose, IconMenu } from './Icons';
 import { useContent } from '../admin/ContentContext';
 import Editable from '../admin/Editable';
+import LogoManager from '../admin/LogoManager';
 
 export default function Nav({ solid = false }) {
   const { isScrolled, isHidden } = useScrollNav();
@@ -29,7 +30,7 @@ export default function Nav({ solid = false }) {
         <div className="container">
           <NavLink to="/" className="brand" aria-label={SITE.name}>
             <span className="brand__mark">
-              <BrandMark />
+              <LogoManager fallback={<BrandMark />} />
             </span>
           </NavLink>
           <nav className="nav__links">

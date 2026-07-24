@@ -24,6 +24,8 @@ const FIELD_TO_COLUMN = {
   capRight: 'cap_right',
   storyLabel: 'story_label',
   listMeta: 'list_meta',
+  footerTagline: 'footer_tagline',
+  footerDescription: 'footer_description',
 };
 const toColumn = (field) => FIELD_TO_COLUMN[field] || field;
 
@@ -83,6 +85,8 @@ const mapSiteRow = (s) => ({
   instagram: s.instagram,
   facebook: s.facebook,
   mapEmbed: s.map_embed,
+  footerTagline: s.footer_tagline,
+  footerDescription: s.footer_description,
 });
 const mapImageRow = (im) => ({
   id: im.id,
@@ -141,8 +145,10 @@ function findManyImages(images, section, entityKey, role) {
 function flattenAll({ site, rooms, activities, workshops, testimonials, facilities }) {
   const flat = {};
   Object.entries(site || {}).forEach(([k, v]) => {
+    if (k === 'logo') return;
     flat[`site.${k}`] = v ?? '';
   });
+  flat['site.logo.image'] = site?.logo?.image || '';
   [
     ['rooms', rooms],
     ['activities', activities],
@@ -229,9 +235,10 @@ export function ContentProvider({ children }) {
   );
   const homeGallery = useMemo(() => findManyImages(imagesRaw, 'home_gallery', null, 'gallery'), [imagesRaw]);
   const facilityGallery = useMemo(() => findManyImages(imagesRaw, 'facility_gallery', null, 'gallery'), [imagesRaw]);
+  const siteWithLogo = useMemo(() => ({ ...site, logo: findOneImage(imagesRaw, 'site', null, 'logo') }), [site, imagesRaw]);
 
-  const rows = { site, rooms, activities, workshops, testimonials, facilities, homeGallery, facilityGallery };
-  const overrides = useMemo(() => flattenAll(rows), [site, rooms, activities, workshops, testimonials, facilities]); // eslint-disable-line react-hooks/exhaustive-deps
+  const rows = { site: siteWithLogo, rooms, activities, workshops, testimonials, facilities, homeGallery, facilityGallery };
+  const overrides = useMemo(() => flattenAll(rows), [siteWithLogo, rooms, activities, workshops, testimonials, facilities]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadAll() {
     setLoading(true);
@@ -277,6 +284,10 @@ export function ContentProvider({ children }) {
       await upsertSingleImage('workshop', key, 'media', value);
       return;
     }
+    if (collection === 'site' && field === 'logo.image') {
+      await upsertSingleImage('site', null, 'logo', value);
+      return;
+    }
     if (collection === 'site') {
       const { error } = await supabase.from('site_settings').update({ [toColumn(field)]: value }).eq('id', 1);
       if (error) throw error;
@@ -315,11 +326,21 @@ export function ContentProvider({ children }) {
   }
 
   // Hero images and workshop media are single-slot: replace only. Insert
-  // the row on first use, update it after that.
+  // the row on first use, update it after that. An empty value (e.g. "reset
+  // to default logo") deletes the row instead, so the caller's own
+  // fallback (the bundled SVG mark, for the logo) takes back over.
   async function upsertSingleImage(section, entityKey, role, imageUrl) {
     const existing = imagesRef.current.find(
       (im) => im.section === section && im.entityKey === entityKey && im.role === role && !String(im.id).startsWith('static-')
     );
+    if (!imageUrl) {
+      if (existing) {
+        const { error } = await supabase.from('images').delete().eq('id', existing.id);
+        if (error) throw error;
+        setImagesRaw((prev) => prev.filter((im) => im.id !== existing.id));
+      }
+      return;
+    }
     if (existing) {
       const { error } = await supabase.from('images').update({ image: imageUrl }).eq('id', existing.id);
       if (error) throw error;

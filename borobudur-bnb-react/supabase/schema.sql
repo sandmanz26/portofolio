@@ -26,8 +26,12 @@ create table if not exists site_settings (
   instagram text not null default '',
   facebook text not null default '',
   map_embed text not null default '',
+  footer_tagline text not null default '',
+  footer_description text not null default '',
   constraint site_settings_singleton check (id = 1)
 );
+alter table site_settings add column if not exists footer_tagline text not null default '';
+alter table site_settings add column if not exists footer_description text not null default '';
 
 create table if not exists rooms (
   slug text primary key,

@@ -17,6 +17,8 @@ export default function Footer() {
   const email = overrides['site.email'] ?? SITE.email;
   const addressShort = overrides['site.addressShort'] ?? SITE.addressShort;
   const phoneHref = `tel:${phone.replace(/[^\d+]/g, '')}`;
+  const footerDescription = overrides['site.footerDescription'] ?? SITE.footerDescription;
+  const footerTagline = overrides['site.footerTagline'] ?? SITE.footerTagline;
   return (
     <footer className="footer">
       <div className="container">
@@ -26,8 +28,12 @@ export default function Footer() {
         <div className="footer__top">
           <div className="footer__brand">
             <p>
-              A family-run heritage homestay 700 metres from Borobudur Temple, Magelang, Central Java — hosting
-              travelers since 2016.
+              <Editable
+                path="site.footerDescription"
+                fallback={footerDescription}
+                multiline
+                rules={{ label: 'Footer description', maxLength: 220 }}
+              />
             </p>
             <div className="footer__social">
               <a href={instagram} target="_blank" rel="noopener" aria-label="Instagram">
@@ -90,7 +96,9 @@ export default function Footer() {
           <span>
             © {year} <Editable path="site.name" fallback={SITE.name} rules={{ label: 'Site name', maxLength: 40 }} /> — All rights reserved
           </span>
-          <span>Slow mornings in Magelang</span>
+          <span>
+            <Editable path="site.footerTagline" fallback={footerTagline} rules={{ label: 'Footer tagline', maxLength: 60 }} />
+          </span>
         </div>
       </div>
     </footer>

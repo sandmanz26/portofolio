@@ -121,14 +121,18 @@ An inline "click-to-edit" mode, in the spirit of Elementor/WPBakery:
    backup** (a JSON snapshot of everything currently in the database, for
    your own records).
 
-What's editable: site name/tagline/phone/email/address/social links (Nav,
-Footer, Contact), and per room/activity — name, description, price, story
-text, specs, highlights — plus workshops, testimonials, and the facilities
-list.
+What's editable: site name/tagline/phone/email/address/social links/logo
+(Nav, Footer, Contact), the footer description and tagline, and per
+room/activity — name, description, price, story text, specs, highlights —
+plus workshops, testimonials, and the facilities list.
+
+**Logo**: click the mark in the top-left nav to upload a custom logo, or
+hit **Reset** to go back to the bundled stupa mark.
 
 **Photos** live in their own `images` table (not embedded in the row they
 illustrate), so there are two patterns depending on the slot:
-- **Hero image** (per room/activity) and **workshop photo** — single slot,
+- **Hero image** (per room/activity), **workshop photo**, and the **site
+  logo** — single slot,
   click to replace, same as any other field.
 - **Room/activity thumbnail gallery**, and the curated **Home ("A Small
   Taste")** / **Facility ("In Pictures")** galleries — click any photo to

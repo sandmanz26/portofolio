@@ -13,7 +13,7 @@
 -- SITE SETTINGS
 -- ============================================================
 delete from site_settings where id = 1;
-insert into site_settings (id, name, tagline, phone, email, address, address_short, instagram, facebook, map_embed)
+insert into site_settings (id, name, tagline, phone, email, address, address_short, instagram, facebook, map_embed, footer_tagline, footer_description)
 values (
   1,
   $$Borobudur BnB$$,
@@ -24,7 +24,9 @@ values (
   $$Jl. Balaputradewa No. 7, Dusun Ngaran II, Borobudur, Magelang, Central Java 56553$$,
   $$https://instagram.com$$,
   $$https://facebook.com$$,
-  $$https://www.google.com/maps?q=Borobudur+Temple,+Jl.+Badrawati,+Borobudur,+Magelang,+Central+Java&hl=en&z=15&output=embed$$
+  $$https://www.google.com/maps?q=Borobudur+Temple,+Jl.+Badrawati,+Borobudur,+Magelang,+Central+Java&hl=en&z=15&output=embed$$,
+  $$Slow mornings in Magelang$$,
+  $$A family-run heritage homestay 700 metres from Borobudur Temple, Magelang, Central Java — hosting travelers since 2016.$$
 );
 
 -- ============================================================

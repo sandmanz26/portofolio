@@ -10,6 +10,9 @@ export const SITE = {
   facebook: 'https://facebook.com',
   mapEmbed:
     'https://www.google.com/maps?q=Borobudur+Temple,+Jl.+Badrawati,+Borobudur,+Magelang,+Central+Java&hl=en&z=15&output=embed',
+  footerDescription:
+    'A family-run heritage homestay 700 metres from Borobudur Temple, Magelang, Central Java — hosting travelers since 2016.',
+  footerTagline: 'Slow mornings in Magelang',
 };
 
 export const NAV_LINKS = [
