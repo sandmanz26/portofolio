@@ -100,16 +100,25 @@ Visit `/admin` (e.g. `http://localhost:5173/admin`).
   `src/data/adminAuth.js` (default: `bhf-admin-2026`). Once Supabase is
   configured, this automatically becomes a real email/password sign-in
   instead (see "Moving to Supabase").
-- **Product list** (`/admin`): name, category, price, tag and "featured" are
-  editable directly in the table. Click a cell, change it, click away (or
-  press Enter) — it saves immediately, no Save button. A green flash confirms
-  the save.
+- **Nothing writes until you click Save.** Every editable surface in the
+  admin panel — a product row, the product editor, a content section — holds
+  your edits as a local draft. A **Save / Cancel** bar appears the moment
+  something changes: **Save** persists the whole draft in one call, **Cancel**
+  discards it and reverts every field (including the gallery) back to what
+  was last saved. Nothing is written in between, so there's no risk of a
+  stray click overriding real content mid-edit.
+- **Product list** (`/admin`): edit name, category, price, tag or "featured"
+  directly in a row — a compact Save/Cancel appears in that row once it's
+  dirty.
 - **Add product**: creates a blank product and opens its editor.
 - **Reset demo data**: discards all admin edits and restores the original
   12-piece demo catalog — useful while testing.
-- **Product editor** (`/admin/products/:id`): every field (description,
-  dimensions, material, finish, availability) is the same inline-save
-  pattern, plus:
+- **Product editor** (`/admin/products/:id`): a single Save/Cancel bar
+  (docked under the top bar while you scroll) governs every field on the
+  page at once — details, gallery, copy, specifications.
+  - **Full description** uses a small rich-text editor (bold, italic,
+    bullet/numbered lists) instead of a plain textarea — see "Rich text
+    editor" below.
   - **Gallery**: drag photos onto the drop zone (or click it to browse
     files). Each photo is resized and compressed in the browser before
     being stored. Without Supabase, they're kept as data URLs on the
@@ -119,9 +128,29 @@ Visit `/admin` (e.g. `http://localhost:5173/admin`).
     reusing stock photography). Use the arrow buttons to reorder, "Set
     cover" to promote a photo to the front (it becomes the image shown on
     cards and as the default on the product page), and "Remove" to delete
-    one.
+    one — none of this is persisted until the page-level Save is clicked
+    (uploaded files themselves do go to Storage immediately, since that's
+    a separate concern from the product record; Cancel just leaves an
+    unused file there rather than trying to un-upload it).
   - A live preview of the product card sits alongside the form.
-- **Delete product**: at the bottom of the editor, or from the list table.
+- **Delete product**: at the bottom of the editor, or from the list table —
+  this is immediate (with its own confirmation dialog), not part of the
+  Save/Cancel draft.
+
+### Rich text editor
+
+The product **Full description** field (`RichTextEditor.jsx`) is a small
+WYSIWYG editor — bold, italic, bullet and numbered lists — built directly on
+`contentEditable` + `document.execCommand` rather than a library. That API is
+deprecated but every major browser still supports exactly these four
+commands, and pulling in a dependency (Quill, Tiptap, ...) felt
+disproportionate for "bold/italic/lists" on a furniture description. It
+stores an HTML string, which the public product page renders with
+`dangerouslySetInnerHTML` — safe here because the only path that writes it
+is this authenticated admin editor. If richer formatting (links, images,
+tables) is ever needed, swap this component for a real library; the
+`value`/`onChange` contract (both plain HTML strings) means nothing else
+needs to change.
 
 ### Content editor (`/admin/content`)
 
@@ -134,15 +163,19 @@ this content through `useContent()` (`src/context/ContentContext.jsx`),
 which loads it once and provides it to every page — edit it in `/admin/content`,
 then reload the public page (or navigate to it) to see the change.
 
-- Every field uses the same inline-save pattern as the product editor: type,
-  click away, it's saved — no Save button, a green flash confirms it.
+- Each **section** (Hero, About, Values, ...) is its own draft with its own
+  Save/Cancel bar at the bottom — editing one section doesn't affect any
+  other, so you can work through several without committing each
+  individually.
 - List fields (the hero meta strip, opening hours, value cards, facts,
   product-range lines) have their own small editor: type into any item,
   reorder with the arrow buttons, **Remove** to delete one, or the **+ Add**
-  button to append a new one — commits happen on blur, same as everything
-  else.
+  button to append a new one — all part of that section's draft, same as
+  the plain text fields.
 - **Reset to default** sits at the top of each section and reverts just that
-  section (not the whole page) to the original copy the site ships with.
+  section (not the whole page) to the original copy the site ships with —
+  this one is immediate (with its own confirmation dialog), not part of the
+  Save/Cancel draft.
 - Changing **Site Settings** → WhatsApp number also updates the WhatsApp
   links on the Contact page and homepage contact strip, since both read the
   number from there rather than a hardcoded value.

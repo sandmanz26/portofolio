@@ -796,6 +796,30 @@ h1, h2, h3, .display {
   max-width: 52ch;
 }
 
+.product-detail__desc p {
+  margin-bottom: 1em;
+}
+
+.product-detail__desc p:last-child {
+  margin-bottom: 0;
+}
+
+.product-detail__desc ul,
+.product-detail__desc ol {
+  margin: 0 0 1em;
+  padding-left: 1.4em;
+}
+
+.product-detail__desc li {
+  margin-bottom: 0.35em;
+}
+
+.product-detail__desc strong,
+.product-detail__desc b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
 .spec-list {
   border-top: 1px solid var(--line);
   margin-bottom: 2.5rem;

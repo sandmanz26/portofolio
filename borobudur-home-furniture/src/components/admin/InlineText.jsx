@@ -1,50 +1,29 @@
-import { useEffect, useRef, useState } from "react";
-
 /**
- * A text/number/textarea field that looks like plain text until
- * focused, and saves on blur (or Enter, for single-line inputs)
- * only if the value actually changed — the "inline edit" pattern
- * used throughout the admin panel.
+ * A text/number/textarea input styled to match the admin's inline
+ * fields. Fully controlled (value + onChange fire on every
+ * keystroke) — the parent page holds the draft and decides when to
+ * persist it via its own Save/Cancel bar. This component has no
+ * saving logic of its own.
  */
 export default function InlineText({
   value,
-  onSave,
+  onChange,
   placeholder,
   type = "text",
   textarea = false,
   rows = 3,
   big = false,
 }) {
-  const [draft, setDraft] = useState(value ?? "");
-  const [saved, setSaved] = useState(false);
-  const timeoutRef = useRef(null);
-
-  useEffect(() => {
-    setDraft(value ?? "");
-  }, [value]);
-
-  useEffect(() => () => clearTimeout(timeoutRef.current), []);
-
-  function commit() {
-    if (String(draft) !== String(value ?? "")) {
-      onSave(draft);
-      setSaved(true);
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => setSaved(false), 1200);
-    }
-  }
-
-  const className = "inline-field" + (big ? " inline-field--big" : "") + (saved ? " inline-field--saved" : "");
+  const className = "inline-field" + (big ? " inline-field--big" : "");
 
   if (textarea) {
     return (
       <textarea
         className={className}
         rows={rows}
-        value={draft}
+        value={value ?? ""}
         placeholder={placeholder}
-        onChange={(e) => setDraft(e.target.value)}
-        onBlur={commit}
+        onChange={(e) => onChange(e.target.value)}
       />
     );
   }
@@ -53,13 +32,9 @@ export default function InlineText({
     <input
       className={className}
       type={type}
-      value={draft}
+      value={value ?? ""}
       placeholder={placeholder}
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={commit}
-      onKeyDown={(e) => {
-        if (e.key === "Enter") e.currentTarget.blur();
-      }}
+      onChange={(e) => onChange(e.target.value)}
     />
   );
 }

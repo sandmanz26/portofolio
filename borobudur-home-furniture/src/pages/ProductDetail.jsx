@@ -103,7 +103,7 @@ export default function ProductDetail() {
               </nav>
               <h1 className="product-detail__title">{product.name}</h1>
               <p className="product-detail__price">{formatPrice(product.price)}</p>
-              <p className="product-detail__desc">{product.description}</p>
+              <div className="product-detail__desc" dangerouslySetInnerHTML={{ __html: product.description }} />
               <dl className="spec-list">
                 <div><dt>Dimensions</dt><dd>{product.dimensions}</dd></div>
                 <div><dt>Material</dt><dd>{product.material}</dd></div>

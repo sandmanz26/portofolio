@@ -4,6 +4,8 @@ import { CATEGORIES, deleteProduct, fetchProduct, updateProduct } from "../../da
 import InlineText from "../../components/admin/InlineText.jsx";
 import InlineSelect from "../../components/admin/InlineSelect.jsx";
 import GalleryEditor from "../../components/admin/GalleryEditor.jsx";
+import RichTextEditor from "../../components/admin/RichTextEditor.jsx";
+import SaveCancelBar from "../../components/admin/SaveCancelBar.jsx";
 import ProductCard from "../../components/ProductCard.jsx";
 
 const REAL_CATEGORIES = CATEGORIES.filter((c) => c !== "All");
@@ -12,11 +14,13 @@ export default function AdminProductEditor() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(undefined);
+  const [draft, setDraft] = useState(null);
   const [error, setError] = useState("");
 
   async function refresh() {
     const p = await fetchProduct(id);
     setProduct(p);
+    setDraft(p);
   }
 
   useEffect(() => {
@@ -24,14 +28,33 @@ export default function AdminProductEditor() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  async function save(patch) {
+  function setField(key, value) {
+    setDraft((prev) => ({ ...prev, [key]: value }));
+  }
+
+  const dirty = product && draft && JSON.stringify(product) !== JSON.stringify(draft);
+
+  async function handleSave() {
+    const patch = {
+      ...draft,
+      price: Number(draft.price) || 0,
+      tag: (draft.tag || "").trim() || null,
+    };
     try {
       const updated = await updateProduct(id, patch);
       setProduct(updated);
+      setDraft(updated);
       setError("");
+      return true;
     } catch (e) {
       setError(e.message || "Couldn't save that change.");
+      return false;
     }
+  }
+
+  function handleCancel() {
+    setDraft(product);
+    setError("");
   }
 
   async function handleDelete() {
@@ -55,11 +78,15 @@ export default function AdminProductEditor() {
     <div className="admin-page admin-editor">
       <Link to="/admin" className="admin-editor__back">&larr; All products</Link>
 
+      <div className="save-bar-dock">
+        <SaveCancelBar dirty={Boolean(dirty)} onSave={handleSave} onCancel={handleCancel} />
+      </div>
+
       {error && <p className="admin-banner admin-banner--error">{error}</p>}
 
       <div className="admin-editor__grid">
         <div>
-          <InlineText value={product.name} onSave={(v) => save({ name: v })} big />
+          <InlineText value={draft.name} onChange={(v) => setField("name", v)} big />
 
           <section className="admin-fieldset">
             <h2>Details</h2>
@@ -67,32 +94,28 @@ export default function AdminProductEditor() {
               <label>
                 Category
                 <InlineSelect
-                  value={product.category}
+                  value={draft.category}
                   options={REAL_CATEGORIES}
-                  onSave={(v) => save({ category: v })}
+                  onChange={(v) => setField("category", v)}
                 />
               </label>
               <label>
                 Price (Rp)
-                <InlineText
-                  type="number"
-                  value={product.price}
-                  onSave={(v) => save({ price: Number(v) || 0 })}
-                />
+                <InlineText type="number" value={draft.price} onChange={(v) => setField("price", v)} />
               </label>
               <label>
                 Tag
                 <InlineText
-                  value={product.tag || ""}
+                  value={draft.tag || ""}
                   placeholder="e.g. Best Seller"
-                  onSave={(v) => save({ tag: v.trim() || null })}
+                  onChange={(v) => setField("tag", v)}
                 />
               </label>
               <label className="admin-fieldset__checkbox">
                 <input
                   type="checkbox"
-                  checked={product.featured}
-                  onChange={(e) => save({ featured: e.target.checked })}
+                  checked={draft.featured}
+                  onChange={(e) => setField("featured", e.target.checked)}
                 />
                 Featured on homepage
               </label>
@@ -101,19 +124,23 @@ export default function AdminProductEditor() {
 
           <section className="admin-fieldset">
             <h2>Gallery</h2>
-            <GalleryEditor images={product.images} onChange={(images) => save({ images })} productId={product.id} />
+            <GalleryEditor images={draft.images} onChange={(images) => setField("images", images)} productId={product.id} />
           </section>
 
           <section className="admin-fieldset">
             <h2>Copy</h2>
             <label className="admin-field-block">
               Short description (used on cards)
-              <InlineText textarea rows={2} value={product.short} onSave={(v) => save({ short: v })} />
+              <InlineText textarea rows={2} value={draft.short} onChange={(v) => setField("short", v)} />
             </label>
-            <label className="admin-field-block">
-              Full description
-              <InlineText textarea rows={5} value={product.description} onSave={(v) => save({ description: v })} />
-            </label>
+            <div className="admin-field-block">
+              <p className="admin-field-block__label">Full description</p>
+              <RichTextEditor
+                value={draft.description}
+                onChange={(html) => setField("description", html)}
+                placeholder="Full product description..."
+              />
+            </div>
           </section>
 
           <section className="admin-fieldset">
@@ -121,19 +148,19 @@ export default function AdminProductEditor() {
             <div className="admin-fieldset__row">
               <label>
                 Dimensions
-                <InlineText value={product.dimensions} onSave={(v) => save({ dimensions: v })} />
+                <InlineText value={draft.dimensions} onChange={(v) => setField("dimensions", v)} />
               </label>
               <label>
                 Material
-                <InlineText value={product.material} onSave={(v) => save({ material: v })} />
+                <InlineText value={draft.material} onChange={(v) => setField("material", v)} />
               </label>
               <label>
                 Finish
-                <InlineText value={product.finish} onSave={(v) => save({ finish: v })} />
+                <InlineText value={draft.finish} onChange={(v) => setField("finish", v)} />
               </label>
               <label>
                 Availability
-                <InlineText value={product.leadTime} onSave={(v) => save({ leadTime: v })} />
+                <InlineText value={draft.leadTime} onChange={(v) => setField("leadTime", v)} />
               </label>
             </div>
           </section>
@@ -146,7 +173,7 @@ export default function AdminProductEditor() {
         <aside className="admin-editor__preview">
           <p className="admin-editor__preview-label">Live preview</p>
           <div className="admin-editor__preview-card" onClickCapture={(e) => e.preventDefault()}>
-            <ProductCard product={product} />
+            <ProductCard product={draft} />
           </div>
           <Link className="link-arrow" to={`/product/${product.id}`} target="_blank" rel="noopener noreferrer">
             View public page &#8599;
