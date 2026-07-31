@@ -9,6 +9,7 @@ import { CONTENT_SECTIONS, CONTENT_TABS } from "../../data/contentSchema.js";
 import InlineText from "../../components/admin/InlineText.jsx";
 import ArrayFieldEditor from "../../components/admin/ArrayFieldEditor.jsx";
 import StringListEditor from "../../components/admin/StringListEditor.jsx";
+import ImageUploadField from "../../components/admin/ImageUploadField.jsx";
 import SaveCancelBar from "../../components/admin/SaveCancelBar.jsx";
 
 export default function AdminContent() {
@@ -161,6 +162,20 @@ export default function AdminContent() {
                     itemFields={field.itemFields}
                     addLabel={field.addLabel}
                     emptyItem={field.emptyItem}
+                    onChange={(next) => setField(section.key, field.key, next)}
+                  />
+                </div>
+              ))}
+
+            {section.fields
+              .filter((f) => f.type === "image")
+              .map((field) => (
+                <div className="admin-field-block admin-field-block--wide" key={field.key}>
+                  <p className="admin-field-block__label">{field.label}</p>
+                  <ImageUploadField
+                    value={fieldValue(section.key, field.key)}
+                    pathPrefix={section.key}
+                    placeholder={field.placeholder}
                     onChange={(next) => setField(section.key, field.key, next)}
                   />
                 </div>

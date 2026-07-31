@@ -124,6 +124,14 @@ export const DEFAULT_CONTENT = {
     addressMapsUrl: SITE.address.mapsUrl,
     hours: SITE.hours.slice(),
   },
+  site_branding: {
+    // Empty string = no logo image uploaded yet; the header/footer fall
+    // back to rendering brandMark/brandName as text (today's default).
+    logoImage: "",
+    brandMark: SITE.brand,
+    brandName: SITE.name,
+    footerNote: "Handcrafted in Yogyakarta.",
+  },
 };
 
 export const CONTENT_KEYS = Object.keys(DEFAULT_CONTENT);

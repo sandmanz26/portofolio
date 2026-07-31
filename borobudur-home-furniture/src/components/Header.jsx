@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { SITE } from "../data/site.js";
 import { useCart } from "../context/CartContext.jsx";
+import { useContent } from "../context/ContentContext.jsx";
 
 const NAV_ITEMS = [
   { to: "/", label: "Home", end: true },
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
 export default function Header() {
   const { pathname } = useLocation();
   const { count } = useCart();
+  const branding = useContent().site_branding;
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -44,8 +45,12 @@ export default function Header() {
     <header className={headerClass}>
       <div className="container site-header__inner">
         <Link className="brand" to="/">
-          <span className="brand__mark">{SITE.brand}</span>
-          <span className="brand__name">{SITE.name}</span>
+          {branding.logoImage ? (
+            <img className="brand__logo" src={branding.logoImage} alt={branding.brandName} />
+          ) : (
+            <span className="brand__mark">{branding.brandMark}</span>
+          )}
+          <span className="brand__name">{branding.brandName}</span>
         </Link>
         <div className="site-header__right">
           <Link to="/cart" className="cart-link" aria-label={`Cart, ${count} item${count === 1 ? "" : "s"}`}>

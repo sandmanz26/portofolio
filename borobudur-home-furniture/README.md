@@ -214,6 +214,29 @@ then reload the public page (or navigate to it) to see the change.
   links on the Contact page and homepage contact strip, since both read the
   number from there rather than a hardcoded value.
 
+### Branding (header logo & footer)
+
+Under the **Site Settings** tab, the **Branding** section controls the mark
+shown in the header and footer on every page:
+
+- **Logo image (optional)** — drag a file, click to browse, or paste an
+  image URL. Uploaded logos go through the same compress-and-upload path as
+  product photos (`src/utils/image.js`), landing in the `product-photos`
+  storage bucket under a `site_branding/` prefix once Supabase is configured
+  (or as a data URL in `localStorage` otherwise). Click **Remove** to go
+  back to the text mark.
+- **Brand mark** / **Brand name** — the short mark (e.g. "BHF") and full
+  company name shown when no logo image is set, and the name shown next to
+  the logo when one is.
+- **Footer closing line** — the small text under the copyright line in the
+  footer.
+
+Like the rest of the content editor, this is its own draft with its own
+Save/Cancel bar — nothing is applied until you hit Save. The footer renders
+an uploaded logo on a light background chip (`.brand__logo--footer` in
+`src/styles/style.css`) so it stays legible regardless of the logo's own
+colors, since the footer itself is dark.
+
 ### Where edits are stored right now
 
 Without Supabase configured, admin edits (including uploaded photos, as data

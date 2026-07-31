@@ -176,4 +176,16 @@ export const CONTENT_SECTIONS = [
       { key: "hours", label: "Opening hours", type: "stringList", itemPlaceholder: "e.g. Monday – Saturday, 9am – 5pm" },
     ],
   },
+  {
+    key: "site_branding",
+    tab: "Site Settings",
+    label: "Branding",
+    note: "Used in the header and footer on every page. Upload a logo to replace the text mark, or leave it empty to keep using text.",
+    fields: [
+      { key: "logoImage", label: "Logo image (optional)", type: "image", placeholder: "Drag a logo here, or click to browse" },
+      { key: "brandMark", label: "Brand mark (short, e.g. \"BHF\") — shown if no logo image", type: "text" },
+      { key: "brandName", label: "Brand name (full company name)", type: "text" },
+      { key: "footerNote", label: "Footer closing line", type: "text" },
+    ],
+  },
 ];

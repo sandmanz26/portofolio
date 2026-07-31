@@ -236,6 +236,13 @@ h1, h2, h3, .display {
   letter-spacing: 0.06em;
 }
 
+.brand__logo {
+  height: 2.1rem;
+  width: auto;
+  max-width: 8rem;
+  object-fit: contain;
+}
+
 .brand__name {
   font-size: 0.625rem;
   font-weight: 500;
@@ -1238,6 +1245,15 @@ h1, h2, h3, .display {
 
 .site-footer__brand .brand__mark {
   font-size: 1.9rem;
+}
+
+/* A plain white chip behind the footer logo so it stays legible on the
+   dark footer regardless of the uploaded logo's own colours/background. */
+.brand__logo--footer {
+  height: 2.25rem;
+  max-width: 10rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--paper);
 }
 
 .site-footer__brand p {
