@@ -8,12 +8,16 @@ import {
   formatPrice,
 } from "../data/products.js";
 import { SITE, whatsappLink } from "../data/site.js";
+import { useCart } from "../context/CartContext.jsx";
 
 export default function ProductDetail() {
   const { id } = useParams();
   const [product, setProduct] = useState(undefined); // undefined = loading, null = not found
   const [related, setRelated] = useState([]);
   const [activeImage, setActiveImage] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const [added, setAdded] = useState(false);
+  const { addToCart } = useCart();
 
   useEffect(() => {
     let active = true;
@@ -21,6 +25,8 @@ export default function ProductDetail() {
       if (!active) return;
       setProduct(p);
       setActiveImage(0);
+      setQuantity(1);
+      setAdded(false);
       if (p) {
         document.title = `${p.name} — ${SITE.name}`;
         fetchRelatedProducts(p).then((r) => active && setRelated(r));
@@ -110,9 +116,40 @@ export default function ProductDetail() {
                 <div><dt>Finish</dt><dd>{product.finish}</dd></div>
                 <div><dt>Availability</dt><dd>{product.leadTime}</dd></div>
               </dl>
+              <div className="product-detail__cart-row">
+                <div className="qty-stepper">
+                  <button
+                    type="button"
+                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                    aria-label="Decrease quantity"
+                  >
+                    &minus;
+                  </button>
+                  <span>{quantity}</span>
+                  <button type="button" onClick={() => setQuantity((q) => q + 1)} aria-label="Increase quantity">
+                    &#43;
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  className="btn btn--solid"
+                  onClick={() => {
+                    addToCart(product.id, quantity);
+                    setAdded(true);
+                    setTimeout(() => setAdded(false), 1800);
+                  }}
+                >
+                  {added ? "Added to Cart ✓" : "Add to Cart"}
+                </button>
+              </div>
+              {added && (
+                <p className="product-detail__cart-note">
+                  In your cart. <Link to="/cart">View cart &rarr;</Link>
+                </p>
+              )}
               <div className="product-detail__actions">
                 <a
-                  className="btn btn--solid"
+                  className="btn"
                   href={whatsappLink(waMessage)}
                   target="_blank"
                   rel="noopener noreferrer"

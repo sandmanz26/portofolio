@@ -173,7 +173,7 @@ export default function AdminProductEditor() {
         <aside className="admin-editor__preview">
           <p className="admin-editor__preview-label">Live preview</p>
           <div className="admin-editor__preview-card" onClickCapture={(e) => e.preventDefault()}>
-            <ProductCard product={draft} />
+            <ProductCard product={draft} interactive={false} />
           </div>
           <Link className="link-arrow" to={`/product/${product.id}`} target="_blank" rel="noopener noreferrer">
             View public page &#8599;

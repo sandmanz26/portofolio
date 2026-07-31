@@ -4,6 +4,7 @@ import Home from "./pages/Home.jsx";
 import Catalog from "./pages/Catalog.jsx";
 import ProductDetail from "./pages/ProductDetail.jsx";
 import Contact from "./pages/Contact.jsx";
+import Cart from "./pages/Cart.jsx";
 import NotFound from "./pages/NotFound.jsx";
 import AdminLayout from "./pages/admin/AdminLayout.jsx";
 import AdminProducts from "./pages/admin/AdminProducts.jsx";
@@ -18,6 +19,7 @@ export default function App() {
         <Route path="catalog" element={<Catalog />} />
         <Route path="product/:id" element={<ProductDetail />} />
         <Route path="contact" element={<Contact />} />
+        <Route path="cart" element={<Cart />} />
         <Route path="*" element={<NotFound />} />
       </Route>
 

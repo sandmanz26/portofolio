@@ -27,6 +27,7 @@ change either way. See "Moving to Supabase" below for the exact steps.
 | `/`               | `src/pages/Home.jsx`            | Hero, about, values, product range, featured pieces, contact           |
 | `/catalog`         | `src/pages/Catalog.jsx`         | Product grid with category filters (`?category=Seating` etc.)          |
 | `/product/:id`      | `src/pages/ProductDetail.jsx`   | Product detail with a photo gallery, related products                  |
+| `/cart`              | `src/pages/Cart.jsx`            | Cart + "Request Invoice" — see "Cart & invoice requests" below         |
 | `/contact`          | `src/pages/Contact.jsx`         | Showroom info + a form that opens WhatsApp with a pre-written message  |
 | `/admin`            | `src/pages/admin/AdminProducts.jsx` | Product list with inline editing (see "Admin panel" below)         |
 | `/admin/products/:id` | `src/pages/admin/AdminProductEditor.jsx` | Full product editor + gallery manager                     |
@@ -45,8 +46,10 @@ src/
   context/
     ContentContext.jsx     loads all site content once, provides it to every
                             public page via useContent()
+    CartContext.jsx         cart state (localStorage-backed) via useCart() —
+                            see "Cart & invoice requests" below
   hooks/useReveal.js       scroll-reveal animation hook
-  pages/                   one file per public route
+  pages/                   one file per public route, including Cart.jsx
     admin/                 AdminLayout (passphrase OR Supabase Auth gate + shell),
                             AdminProducts, AdminProductEditor, AdminContent
   data/
@@ -90,6 +93,37 @@ npm run dev       # http://localhost:5173, hot reload
 npm run build     # outputs static site to dist/
 npm run preview   # serve the dist/ build locally to sanity-check it
 ```
+
+## Cart & invoice requests
+
+This is a no-checkout, no-payment site — the cart exists so a visitor can
+gather several pieces, then send them to BHF as one message instead of
+asking about each product individually. The flow is: **Add to Cart** (from
+a product card or the product page) → **`/cart`** → fill in name/email/
+optional phone & notes → **Request Invoice via WhatsApp**, which opens
+WhatsApp with the whole cart itemized (name, quantity, line price, and an
+estimated total) plus the customer's details. BHF's team follows up with an
+actual price and invoice over WhatsApp — nothing here generates a real
+invoice or processes payment.
+
+- **Cart state** (`src/context/CartContext.jsx`, `useCart()`) lives in
+  `localStorage` only (`{ productId, quantity }` pairs) — there's no
+  Supabase table for it. Product details (name, price, image) are always
+  looked up live from `src/data/products.js` when the cart renders, so
+  prices shown are never stale even if an admin edits a product after it
+  was added to someone's cart.
+- The header's cart icon (with an item-count badge) is available on every
+  public page; the same icon works fine on the dark hero header.
+- **Add to Cart** appears as a hover button on every `ProductCard` (always
+  visible on touch devices) and as a quantity-stepper + button on the
+  product detail page — both call the same `addToCart()`.
+- `ProductCard` takes an `interactive` prop (default `true`); the admin
+  editor's "live preview" passes `interactive={false}` to hide the Add to
+  Cart button there, since it's a static preview of an in-progress draft,
+  not a real product page.
+- `/cart` lets you adjust or remove line items and re-fetches product data
+  whenever the cart changes, so it can't show a quantity for a product that
+  was deleted since being added (those lines just don't render).
 
 ## Admin panel
 
